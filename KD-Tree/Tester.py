@@ -1,5 +1,6 @@
 import unittest
 import time
+import random
 from .Arborist import *
 
 
@@ -14,44 +15,64 @@ def generate_random_psm() -> PSM:
         sequence=peptide_string
     )
 
+
 class TreeType(Enum):
     KD_TREE = 1
     SORTED_LIST = 2
     LIST = 3
+    FAST_BINARY = 4
+    FAST_AVL = 5
+    FAST_RB = 6
+    BINARY = 7
+    AVL = 8
+    RB_TREE = 9
+
 
 def psm_tree_constructor(tree_type: TreeType):
     if tree_type == TreeType.KD_TREE:
-        return PsmKDTree
+        return PsmKdTree
     if tree_type == TreeType.SORTED_LIST:
         return PsmSortedList
     if tree_type == TreeType.LIST:
         return PsmList
+    if tree_type == TreeType.FAST_BINARY:
+        return PsmFastBinaryTree
+    if tree_type == TreeType.FAST_AVL:
+        return PsmFastAvlTree
+    if tree_type == TreeType.FAST_RB:
+        return PsmFastRBTree
+    if tree_type == TreeType.BINARY:
+        return PsmBinaryTree
+    if tree_type == TreeType.AVL:
+        return PsmAvlTree
+    if tree_type == TreeType.RB_TREE:
+        return PsmRBTree
     else:
         return NotImplemented
 
+
 class PsmTreeTester(unittest.TestCase):
     PPM = 20
-    OOK0_TOL = 0.05
     RT_OFF = 100
-
+    OOK0_TOL = 0.05
 
     def setUp(self):
         self.setup_tree = psm_tree_constructor(TreeType.KD_TREE)
         self.tree = self.setup_tree()
-        self.psms = [PSM(1, 1005, 250, 0.9, "PEPTIDE"),
-                     PSM(1, 1100, 260, 0.9, "PETIDE"),
-                     PSM(1, 1150, 260, 0.9, "PETIDE"),
-                     PSM(1, 1200, 252, 0.9, "PEP"),
-                     PSM(2, 1000, 250, 0.9, "PEP"),
-                     PSM(2, 1050, 300, 0.9, "PEPTI"),
-                     PSM(3, 1000, 250, 0.9, "PEPTIDE"),
-                     PSM(1, 3000, 250, 0.9, "PEPTIDE")
+        self.psms = [PSM(1, 1005.0, 250, 0.9, "PEPTIDE"),
+                     PSM(1, 1100.0, 260, 0.9, "PETIDE"),
+                     PSM(1, 1150.0, 260, 0.9, "PETIDE"),
+                     PSM(1, 1200.0, 252, 0.9, "PEP"),
+                     PSM(2, 1000.0, 250, 0.9, "PEP"),
+                     PSM(2, 1050.0, 300, 0.9, "PEPTI"),
+                     PSM(3, 1000.0, 250, 0.9, "PEPTIDE"),
+                     PSM(1, 3000.0, 250, 0.9, "PEPTIDE")
                      ]
 
     """
     If mass is the same, tree is not adding results
     each node can store a list of psm's
-    (problem: now really intermignled with PSMTree)
+    (problem: now really intermingled with PSMTree)
     or 
     make a left-child added as the new psm.
     """
@@ -63,8 +84,8 @@ class PsmTreeTester(unittest.TestCase):
         psm = self.psms[0]
         self.tree.add(psm)
         results = self.tree.search(get_mz_bounds(psm.mz, PsmTreeTester.PPM),
-                                   get_ook0_bounds(psm.ook0, PsmTreeTester.OOK0_TOL),
-                                   get_rt_bounds(psm.rt, PsmTreeTester.RT_OFF))
+                                   get_rt_bounds(psm.rt, PsmTreeTester.RT_OFF),
+                                   get_ook0_bounds(psm.ook0, PsmTreeTester.OOK0_TOL))
         self.assertTrue(psm in results)
 
     def test_search_all(self):
@@ -72,8 +93,8 @@ class PsmTreeTester(unittest.TestCase):
             self.tree.add(psm)
         for psm in self.psms:
             results = self.tree.search(get_mz_bounds(psm.mz, PsmTreeTester.PPM),
-                                       get_ook0_bounds(psm.ook0, PsmTreeTester.OOK0_TOL),
-                                       get_rt_bounds(psm.rt, PsmTreeTester.RT_OFF))
+                                       get_rt_bounds(psm.rt, PsmTreeTester.RT_OFF),
+                                       get_ook0_bounds(psm.ook0, PsmTreeTester.OOK0_TOL))
             self.assertTrue(psm in results)
         # print(self.tree)
 
@@ -82,19 +103,21 @@ class PsmTreeTester(unittest.TestCase):
             self.tree.add(x)
         for psm in self.psms:
             results = self.tree.search(get_mz_bounds(psm.mz, 0),
-                                       get_ook0_bounds(psm.ook0, 0),
-                                       get_rt_bounds(psm.rt, 0))
+                                       get_rt_bounds(psm.rt, 0),
+                                       get_ook0_bounds(psm.ook0, 0))
 
-            if psm in results: print("psm success: ", psm)
-            elif psm not in results: print("psm not in results")
+            if psm in results:
+                print("psm success: ", psm)
+            elif psm not in results:
+                print("psm not in results")
 
     def test_not_within(self):
         for psm in self.psms:
             self.tree.add(psm)
         for psm in self.psms:
             results = self.tree.search(get_mz_bounds(0.1, 0),
-                                       get_ook0_bounds(0.001, 0),
-                                       get_rt_bounds(0.01, 0))
+                                       get_rt_bounds(0.01, 0),
+                                       get_ook0_bounds(0.001, 0))
             self.assertFalse(psm in results)
 
     """
@@ -109,8 +132,8 @@ class PsmTreeTester(unittest.TestCase):
             mz_bounds = Boundary(psm.mz, psm.mz + ppm_offset)
 
             results = self.tree.search(mz_bounds,
-                                       get_ook0_bounds(psm.ook0, 1000),
-                                       get_rt_bounds(psm.rt, 10000))
+                                       get_rt_bounds(psm.rt, 10000),
+                                       get_ook0_bounds(psm.ook0, 1000))
             print(results)
             self.assertTrue(psm in results)
 
@@ -122,33 +145,9 @@ class PsmTreeTester(unittest.TestCase):
             mz_bounds = Boundary(psm.mz - ppm_offset, psm.mz)
 
             results = self.tree.search(mz_bounds,
-                                       get_ook0_bounds(psm.ook0, 1000),
-                                       get_rt_bounds(psm.rt, 10000))
+                                       get_rt_bounds(psm.rt, 10000),
+                                       get_ook0_bounds(psm.ook0, 1000))
             print(results)
-            self.assertTrue(psm in results)
-
-    def test_ook0_lower(self):
-        for psm in self.psms:
-            self.tree.add(psm)
-        for psm in self.psms:
-            ook0_tolerance = psm.ook0 + psm.ook0 * PsmTreeTester.OOK0_TOL
-            ook0_bounds = Boundary(psm.ook0, psm.ook0 + ook0_tolerance)
-
-            results = self.tree.search(get_mz_bounds(psm.mz, 1000),
-                                       ook0_bounds,
-                                       get_rt_bounds(psm.rt, 10000))
-            self.assertTrue(psm in results)
-
-    def test_ook0_upper(self):
-        for psm in self.psms:
-            self.tree.add(psm)
-        for psm in self.psms:
-            ook0_tolerance = psm.ook0 - psm.ook0 * PsmTreeTester.OOK0_TOL
-            ook0_bounds = Boundary(psm.ook0 - ook0_tolerance, psm.ook0)
-
-            results = self.tree.search(get_mz_bounds(psm.mz, 1000),
-                                       ook0_bounds,
-                                       get_rt_bounds(psm.rt, 10000))
             self.assertTrue(psm in results)
 
     def test_rt_lower(self):
@@ -159,8 +158,8 @@ class PsmTreeTester(unittest.TestCase):
             rt_bounds = Boundary(psm.rt, psm.rt + rt_offset)
 
             results = self.tree.search(get_mz_bounds(psm.mz, 1000),
-                                       get_ook0_bounds(psm.ook0, 1000),
-                                       rt_bounds)
+                                       rt_bounds,
+                                       get_ook0_bounds(psm.ook0, 1000))
             self.assertTrue(psm in results)
 
     def test_rt_upper(self):
@@ -171,20 +170,44 @@ class PsmTreeTester(unittest.TestCase):
             rt_bounds = Boundary(psm.rt - rt_offset, psm.rt)
 
             results = self.tree.search(get_mz_bounds(psm.mz, 1000),
-                                       get_ook0_bounds(psm.ook0, 1000),
-                                       rt_bounds)
+                                       rt_bounds,
+                                       get_ook0_bounds(psm.ook0, 1000))
+            self.assertTrue(psm in results)
+
+    def test_ook0_lower(self):
+        for psm in self.psms:
+            self.tree.add(psm)
+        for psm in self.psms:
+            ook0_tolerance = psm.ook0 + psm.ook0 * PsmTreeTester.OOK0_TOL
+            ook0_bounds = Boundary(psm.ook0, psm.ook0 + ook0_tolerance)
+
+            results = self.tree.search(get_mz_bounds(psm.mz, 1000),
+                                       get_rt_bounds(psm.rt, 10000),
+                                       ook0_bounds)
+            self.assertTrue(psm in results)
+
+    def test_ook0_upper(self):
+        for psm in self.psms:
+            self.tree.add(psm)
+        for psm in self.psms:
+            ook0_tolerance = psm.ook0 - psm.ook0 * PsmTreeTester.OOK0_TOL
+            ook0_bounds = Boundary(psm.ook0 - ook0_tolerance, psm.ook0)
+
+            results = self.tree.search(get_mz_bounds(psm.mz, 1000),
+                                       get_rt_bounds(psm.rt, 10000),
+                                       ook0_bounds)
             self.assertTrue(psm in results)
 
     def test_save_load(self):
         for psm in self.psms:
             self.tree.add(psm)
         self.tree.save('temp.txt')
-        tree2 = PsmSortedList()
+        tree2 = self.setup_tree()
         tree2.load('temp.txt')
         for psm in self.psms:
             results = tree2.search(get_mz_bounds(psm.mz, PsmTreeTester.PPM),
-                                   get_ook0_bounds(psm.ook0, PsmTreeTester.OOK0_TOL),
-                                   get_rt_bounds(psm.rt, PsmTreeTester.RT_OFF))
+                                   get_rt_bounds(psm.rt, PsmTreeTester.RT_OFF),
+                                   get_ook0_bounds(psm.ook0, PsmTreeTester.OOK0_TOL))
             self.assertTrue(psm in results)
 
     # 1) add psms to tree
@@ -197,14 +220,14 @@ class PsmTreeTester(unittest.TestCase):
         for psm in psms:
             self.tree.add(psm)
             results = self.tree.search(get_mz_bounds(psm.mz, PsmTreeTester.PPM),
-                                       get_ook0_bounds(psm.ook0, PsmTreeTester.OOK0_TOL),
-                                       get_rt_bounds(psm.rt, PsmTreeTester.RT_OFF))
+                                       get_rt_bounds(psm.rt, PsmTreeTester.RT_OFF), 
+                                       get_ook0_bounds(psm.ook0, PsmTreeTester.OOK0_TOL))
             self.assertTrue(psm in results)"""
 
     def test_add_search_performance(self):
         print("running test_add_search_performance")
         performance_dict = {}
-        for n in [1_000, 5_000, 10_000, 50_000, 100_000, 500_000, 1_000_000, 5_000_000]:
+        for n in [10, 100, 500, 1_000]:
             tree = self.setup_tree()
             start_time = time.time()
             psms = [generate_random_psm() for _ in range(n)]
@@ -214,8 +237,8 @@ class PsmTreeTester(unittest.TestCase):
 
             start_time = time.time()
             _ = [self.assertTrue(len(tree.search(get_mz_bounds(psm.mz, PsmTreeTester.PPM),
-                                                 get_ook0_bounds(psm.ook0, PsmTreeTester.OOK0_TOL),
-                                                 get_rt_bounds(psm.rt, PsmTreeTester.RT_OFF))) > 0) for psm in psms]
+                                                 get_rt_bounds(psm.rt, PsmTreeTester.RT_OFF),
+                                                 get_ook0_bounds(psm.ook0, PsmTreeTester.OOK0_TOL))) > 0) for psm in psms]
             search_time = (time.time() - start_time)
             print(f"N: {n:,}, search_time: {search_time}")
             print(f"N: {n:,}, search_time_per_psm: {(time.time() - start_time) / n}")
@@ -238,8 +261,8 @@ class PsmTreeTester(unittest.TestCase):
 
             start_time = time.time()
             _ = [self.assertTrue(len(tree.search(get_mz_bounds(psm.mz, PsmTreeTester.PPM),
-                                                 get_ook0_bounds(psm.ook0, PsmTreeTester.OOK0_TOL),
-                                                 get_rt_bounds(psm.rt, PsmTreeTester.RT_OFF))) > 0) for psm in psms]
+                                                 get_rt_bounds(psm.rt, PsmTreeTester.RT_OFF),
+                                                 get_ook0_bounds(psm.ook0, PsmTreeTester.OOK0_TOL))) > 0) for psm in psms]
             search_time = (time.time() - start_time)
             print(f"N: {n}, search_time: {search_time}")
             performance_dict[n] = {'add_time': add_time, 'search_time': search_time}

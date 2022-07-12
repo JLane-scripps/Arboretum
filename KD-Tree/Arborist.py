@@ -1,13 +1,6 @@
-from dataclasses import dataclass, field
 from enum import Enum
-from threading import Lock
-from typing import Dict, List
 import _pickle as cPickle
-from .Forest import *
-from .boundary import *
-from .constants import *
-import random
-import string
+from .Forest import*
 
 
 class TreeType(Enum):
@@ -17,15 +10,30 @@ class TreeType(Enum):
     FAST_BINARY = 4
     FAST_AVL = 5
     FAST_RB = 6
+    BINARY = 7
+    AVL = 8
+    RB_TREE = 9
 
 
 def psm_tree_constructor(tree_type: TreeType):
-    #if tree_type == TreeType.KD_TREE:
-        #return PsmKDTree()
+    if tree_type == TreeType.KD_TREE:
+        return PsmKdTree
     if tree_type == TreeType.SORTED_LIST:
-        return PsmSortedList()
+        return PsmSortedList
     if tree_type == TreeType.LIST:
-        return PsmList()
+        return PsmList
+    if tree_type == TreeType.FAST_BINARY:
+        return PsmFastBinaryTree
+    if tree_type == TreeType.FAST_AVL:
+        return PsmFastAvlTree
+    if tree_type == TreeType.FAST_RB:
+        return PsmFastRBTree
+    if tree_type == TreeType.BINARY:
+        return PsmBinaryTree
+    if tree_type == TreeType.AVL:
+        return PsmAvlTree
+    if tree_type == TreeType.RB_TREE:
+        return PsmRBTree
     else:
         return NotImplemented
 
@@ -40,8 +48,8 @@ class PSMArborist:
     trees: Dict[int, AbstractPsmTree] = field(default_factory=dict)
 
     mz_ppm: int = 20
-    ook0_tolerance: float = 0.05
     rt_offset: int = 100
+    ook0_tolerance: float = 0.05
 
     _latest_ms2_id: int = None
     _lock: Lock = Lock()
@@ -70,14 +78,14 @@ class PSMArborist:
         charge = psm[PSM_CHARGE_KEY]
         if charge not in self.trees:
             self.trees[charge] = psm_tree_constructor(self.tree_type)
-            self.trees[charge] = AbstractPsmTree(RedBlackTree())
+            self.trees[charge] = AbstractPsmTree(self.tree_type)
         self.trees[charge].add(psm, ppm = self.mz_ppm)
         self._latest_ms2_id = psm['ms2_id']
 
     def search_psm(self, psm):  # mostly for testing
-        return self.search(psm[PSM_CHARGE_KEY], psm[PSM_MZ_KEY], psm[PSM_OOK0_KEY], psm[PSM_RT_KEY])
+        return self.search(psm[PSM_CHARGE_KEY], psm[PSM_MZ_KEY], psm[PSM_RT_KEY], psm[PSM_OOK0_KEY])
 
-    def search(self, charge, mz, ook0, rt, mz_ppm=None, ook0_tolerance=None, rt_offset=None) -> Dict:
+    def search(self, charge, mz, rt, ook0, mz_ppm=None, rt_offset=None, ook0_tolerance=None) -> Dict:
 
         if charge not in self.trees:
             return []
@@ -85,13 +93,13 @@ class PSMArborist:
         if mz_ppm is None:
             mz_ppm = self.mz_ppm
 
-        if ook0_tolerance is None:
-            ook0_tolerance = self.ook0_tolerance
-
         if rt_offset is None:
             rt_offset = self.rt_offset
 
-        results = self.trees[charge].search(mz, ook0, rt, mz_ppm, ook0_tolerance, rt_offset)
+        if ook0_tolerance is None:
+            ook0_tolerance = self.ook0_tolerance
+
+        results = self.trees[charge].search(mz, rt, ook0, mz_ppm, rt_offset, ook0_tolerance)
 
         return results
 

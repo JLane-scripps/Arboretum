@@ -1,3 +1,14 @@
+class Point(list):
+    def __new__(self, value, name=None, values=None):
+        s = super(Point, self).__new__(self, value)
+        return s
+
+    @staticmethod
+    def create(values, data):
+        point = Point(values)
+        point.data = data
+        return point
+
 def _is_within_bounds(val, bounds):
     if val < bounds[0] or val > bounds[1]:
         return False
@@ -6,9 +17,9 @@ def _is_within_bounds(val, bounds):
 
 class KdTree:
 
-    def __init__(self, dim, points):       # "self" refers to the *entire tree*. The tree will be composed of points.
-        self._dim = dim                    # "dimensions"; the number of values (thus dimensions) each point  has
-        self._points = points              # point is 1 node of data, one reading containing charge, mz, rt, ook0, etc
+    def __init__(self, dim, points):
+        self._dim = dim
+        self._points = points
         self._root = self._make_kd_tree()
 
     # Makes the KD-Tree for fast lookup
@@ -122,8 +133,8 @@ class KdTree:
             elif kd_node[2][i] < bounds[i][0]:  # go right
                 results.extend(self._get_bounded_rec(kd_node[1], bounds, (i + 1) % self._dim))
             else:  # go both
-                results.extend(self._get_bounded_rec(kd_node[0], bounds, (i + 1) % self._dim))
-                results.extend(self._get_bounded_rec(kd_node[1], bounds, (i + 1) % self._dim))
+                results.extend(self._get_bounded_rec(kd_node[0], bounds,  (i + 1) % self._dim))
+                results.extend(self._get_bounded_rec(kd_node[1], bounds,  (i + 1) % self._dim))
 
         return results
 
