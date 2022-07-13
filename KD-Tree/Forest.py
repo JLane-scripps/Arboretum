@@ -1,10 +1,11 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
+import numpy as np
+from dataclasses import field
 from threading import Lock
-from typing import Any, List, Dict
-from bisect import bisect, insort, bisect_left
+from typing import List
+from bisect import bisect, bisect_left
 from collections import deque
-from dataclasses import dataclass
+from intervaltree import IntervalTree
 from bintrees import FastBinaryTree, FastAVLTree, FastRBTree, BinaryTree, AVLTree, RBTree
 import _pickle as cPickle
 from .boundary import *
@@ -27,7 +28,7 @@ class PSM:
     sequence: str
     # psm = PSM(charge=1, mz=100, rt=100, ook0=0.5, sequence="PEPTIDE")
 
-    def in_Boundary(self, mz_Boundary: Boundary, rt_Boundary: Boundary, ook0_Boundary: Boundary) -> bool:
+    def in_boundary(self, mz_Boundary: Boundary, rt_Boundary: Boundary, ook0_Boundary: Boundary) -> bool:
         return mz_Boundary.lower <= self.mz <= mz_Boundary.upper and \
                rt_Boundary.lower <= self.rt <= rt_Boundary.upper and \
                ook0_Boundary.lower <= self.ook0 <= ook0_Boundary.upper
@@ -79,7 +80,6 @@ class AbstractPsmTree(ABC):
     """
     saves all psm's within tree to a text file
     """
-    @abstractmethod
     def save(self, FILE_NAME):
         with open(FILE_NAME, "wb") as output_file:
             cPickle.dump(self.tree, output_file)
@@ -87,7 +87,6 @@ class AbstractPsmTree(ABC):
     """
     adds psm's from text file to PSMTree
     """
-    @abstractmethod
     def load(self, FILE_NAME):
         with open(FILE_NAME, "rb") as input_file:
             self.tree = cPickle.load(input_file)
@@ -120,6 +119,27 @@ class PsmKdTree(AbstractPsmTree):
             for line in file:
                 psm = PSM.deserialize(line)
                 self.add(psm)
+
+
+@dataclass
+class PsmIntervalTree(AbstractPsmTree):
+    tree: IntervalTree = IntervalTree()
+    ppm: int = 50
+
+    def add(self, psm: PSM):
+        ppm_offset = psm.mz * self.ppm / 1_000_000
+        self.tree[psm.mz - ppm_offset:psm.mz + ppm_offset] = psm
+
+    def search(self, mz_bounds: Boundary, rt_bounds: Boundary, ook0_bounds: Boundary):
+        mz = np.mean([mz_bounds.lower, mz_bounds.upper])
+        return [psm.data for psm in self.tree[mz] if psm.data.in_boundary(mz_bounds, rt_bounds, ook0_bounds)]
+
+    def clear(self):
+        self.tree.clear()
+
+    def len(self) -> int:
+        return len(self.tree)
+
 
 
 """
@@ -222,7 +242,7 @@ class PsmBinTrees(AbstractPsmTree):
 
     def search(self, mz_bounds: Boundary, rt_bounds: Boundary, ook0_bounds: Boundary):
         res = self.tree[mz_bounds.lower:mz_bounds.upper+0.00001].values()
-        return [psm for psm_list in res for psm in psm_list if psm.in_Boundary(mz_bounds, rt_bounds, ook0_bounds)]
+        return [psm for psm_list in res for psm in psm_list if psm.in_boundary(mz_bounds, rt_bounds, ook0_bounds)]
 
     def clear(self):
         self.tree.clear()

@@ -26,6 +26,7 @@ class TreeType(Enum):
     BINARY = 7
     AVL = 8
     RB_TREE = 9
+    INTERVAL_TREE = 10
 
 
 def psm_tree_constructor(tree_type: TreeType):
@@ -47,6 +48,8 @@ def psm_tree_constructor(tree_type: TreeType):
         return PsmAvlTree
     if tree_type == TreeType.RB_TREE:
         return PsmRBTree
+    if tree_type == TreeType.INTERVAL_TREE:
+        return PsmIntervalTree
     else:
         return NotImplemented
 
@@ -76,6 +79,28 @@ def test_by_psm_tree_type(tree_type: TreeType):
         or 
         make a left-child added as the new psm.
         """
+
+        def test_add_search_performance(self):
+            print("running test_add_search_performance for", self.setup_tree)
+            performance_dict = {}
+            for n in [10, 100, 500, 1_000]:
+                tree = self.setup_tree()
+                start_time = time.time()
+                psms = [generate_random_psm() for _ in range(n)]
+                _ = [tree.add(psm) for psm in psms]
+                add_time = (time.time() - start_time)
+                print(f"N: {n:,}, add_time: {add_time:,}")
+
+                start_time = time.time()
+                _ = [self.assertTrue(len(tree.search(get_mz_bounds(psm.mz, PsmTreeTester.PPM),
+                                                     get_rt_bounds(psm.rt, PsmTreeTester.RT_OFF),
+                                                     get_ook0_bounds(psm.ook0, PsmTreeTester.OOK0_TOL))) > 0) for psm in psms]
+                search_time = (time.time() - start_time)
+                print(f"N: {n:,}, search_time: {search_time}")
+                print(f"N: {n:,}, search_time_per_psm: {(time.time() - start_time) / n}")
+
+                performance_dict[n] = {'add_time': add_time, 'search_time': search_time}
+            print(performance_dict)
 
         def test_add(self):
             self.tree.add(self.psms[0])
@@ -224,27 +249,6 @@ def test_by_psm_tree_type(tree_type: TreeType):
                                            get_ook0_bounds(psm.ook0, PsmTreeTester.OOK0_TOL))
                 self.assertTrue(psm in results)"""
 
-        def test_add_search_performance(self):
-            print("running test_add_search_performance for", self.setup_tree)
-            performance_dict = {}
-            for n in [10, 100, 500, 1_000, 10_000]:
-                tree = self.setup_tree()
-                start_time = time.time()
-                psms = [generate_random_psm() for _ in range(n)]
-                _ = [tree.add(psm) for psm in psms]
-                add_time = (time.time() - start_time)
-                print(f"N: {n:,}, add_time: {add_time:,}")
-
-                start_time = time.time()
-                _ = [self.assertTrue(len(tree.search(get_mz_bounds(psm.mz, PsmTreeTester.PPM),
-                                                     get_rt_bounds(psm.rt, PsmTreeTester.RT_OFF),
-                                                     get_ook0_bounds(psm.ook0, PsmTreeTester.OOK0_TOL))) > 0) for psm in psms]
-                search_time = (time.time() - start_time)
-                print(f"N: {n:,}, search_time: {search_time}")
-                print(f"N: {n:,}, search_time_per_psm: {(time.time() - start_time) / n}")
-
-                performance_dict[n] = {'add_time': add_time, 'search_time': search_time}
-            print(performance_dict)
 
     return PsmTreeTester
 
@@ -278,6 +282,9 @@ class AVLTreeTester(test_by_psm_tree_type(TreeType.AVL)):
     pass
 
 class RBTreeTester(test_by_psm_tree_type(TreeType.RB_TREE)):
+    pass
+
+class IntervalTreeTester(test_by_psm_tree_type(TreeType.INTERVAL_TREE)):
     pass
 
 if __name__ == '__main__':
