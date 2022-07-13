@@ -148,7 +148,7 @@ class PsmSortedList(AbstractPsmTree):
         res = []
         for i in range(start_i, len(self.mz_list)):
             psm = self.tree[i]
-            if psm_attributes_in_bound(psm.mz, psm.rt, psm.ook0, mz_Boundary, ook0_Boundary, rt_Boundary):
+            if psm_attributes_in_bound(psm.mz, psm.rt, psm.ook0, mz_Boundary, rt_Boundary, ook0_Boundary):
                 res.append(psm)
             if self.mz_list[i] > mz_Boundary.upper:
                 break
@@ -178,22 +178,13 @@ class PsmList(AbstractPsmTree):
     def search(self, mz_Boundary: Boundary, rt_Boundary: Boundary, ook0_Boundary: Boundary) -> List[PSM]:
         matches = []
         for psm in self.tree:
-            if psm_attributes_in_bound(psm.mz, psm.rt, psm.ook0, mz_Boundary, ook0_Boundary, rt_Boundary):
+            if psm_attributes_in_bound(psm.mz, psm.rt, psm.ook0, mz_Boundary, rt_Boundary, ook0_Boundary):
                 matches.append(psm)
         return matches
 
-
-    """
-    Adds a PSM to the "tree" list in a sorted manner.
-    Utilizes binary search and tracks first, last, and self.mid indices. 
-    Base Case: List is empty
-    Case 1: New PSM is equal to first psm.
-    Case 2: New PSM
-    """
     def add(self, psm: PSM) -> None:
-        if len(self.tree) == 0:
-            self.tree.append(psm)
-            return
+        self.tree.append(psm)
+        return
 
     def len(self) -> int:
         return len(self.tree)
