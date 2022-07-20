@@ -1,8 +1,9 @@
 from enum import Enum
-import _pickle as cPickle
+from typing import Dict
+from .constants import *
 from .Forest import*
 
-
+# All available tree types are as follows. This list must be updated whenever TreeTypes are removed or added.
 class TreeType(Enum):
     KD_TREE = 1
     SORTED_LIST = 2
@@ -13,7 +14,7 @@ class TreeType(Enum):
     BINARY = 7
     AVL = 8
     RB_TREE = 9
-
+    INTERVAL_TREE = 10
 
 def psm_tree_constructor(tree_type: TreeType):
     if tree_type == TreeType.KD_TREE:
@@ -34,15 +35,17 @@ def psm_tree_constructor(tree_type: TreeType):
         return PsmAvlTree
     if tree_type == TreeType.RB_TREE:
         return PsmRBTree
+    if tree_type == TreeType.INTERVAL_TREE:
+        return PsmIntervalTree
     else:
         return NotImplemented
 
-#NEED TO ADD: Functions that calculate real Boundary values.
 @dataclass
 class PSMArborist:
     """
-    Stores PSM's in separate Interval Trees according to charge
-    New interval Trees will be created for each new charge encountered
+    The Arborist is the handler of each tree. This class "tends to the forest".
+    Stores PSM's in separate Trees (of TreeType) according to charge
+    New Trees will be created for each new charge encountered
     """
     tree_type: TreeType
     trees: Dict[int, AbstractPsmTree] = field(default_factory=dict)
@@ -55,10 +58,9 @@ class PSMArborist:
     _lock: Lock = Lock()
 
     def save(self, file):
-
         print(f"Saving PsmTree: {file}")
         self._lock.acquire()
-        tmp_int_dict ={charge:self.trees[charge].tree for charge in self.trees}
+        tmp_int_dict = {charge: self.trees[charge].tree for charge in self.trees}
         with open(file, "wb") as output_file:
             cPickle.dump(tmp_int_dict, output_file)
         self._lock.release()
@@ -72,14 +74,12 @@ class PSMArborist:
         self._lock.release()
 
     def add(self, psm: Dict):
-        """
-        adds a psm dict to the interval tree according to the ~~interval: [mz-mz*ppm: mz+mz*ppm]~~  THIS IS OLD
-        """
+        # adds a psm to the currently-used tree type. All trees less than 3 Dimensions prioritize sorting by mz limits.
         charge = psm[PSM_CHARGE_KEY]
         if charge not in self.trees:
             self.trees[charge] = psm_tree_constructor(self.tree_type)
             self.trees[charge] = AbstractPsmTree(self.tree_type)
-        self.trees[charge].add(psm, ppm = self.mz_ppm)
+        self.trees[charge].add(psm, ppm=self.mz_ppm)
         self._latest_ms2_id = psm['ms2_id']
 
     def search_psm(self, psm):  # mostly for testing

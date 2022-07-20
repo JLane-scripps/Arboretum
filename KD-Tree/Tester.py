@@ -1,6 +1,7 @@
 import unittest
 import time
 import random
+import os.path
 from .Arborist import *
 
 
@@ -53,6 +54,7 @@ def psm_tree_constructor(tree_type: TreeType):
     else:
         return NotImplemented
 
+
 def test_by_psm_tree_type(tree_type: TreeType):
     class PsmTreeTester(unittest.TestCase):
         PPM = 20
@@ -70,18 +72,18 @@ def test_by_psm_tree_type(tree_type: TreeType):
                          PSM(2, 1050.0, 300, 0.9, "PEPTI"),
                          PSM(3, 1000.0, 250, 0.9, "PEPTIDE"),
                          PSM(1, 3000.0, 250, 0.9, "PEPTIDE")
-                         ]
-
-        """
-        If mass is the same, tree is not adding results
-        each node can store a list of psm's
-        (problem: now really intermingled with PSMTree)
-        or 
-        make a left-child added as the new psm.
-        """
+                         ]  # static psm's for the sake of testing.
 
         def test_add_search_performance(self):
-            print("running test_add_search_performance for", self.setup_tree)
+            """
+            Utilizes every function.
+            Creates tree.
+            Adds static psms and searches for them.
+            Generates random psms in increasingly large quantities and searches for them.
+            Measures search times.
+            Saves & Loads trees.
+            """
+            print("\nPerformance for", self.setup_tree)
             performance_dict = {}
             for n in [10, 100, 500, 1_000]:
                 tree = self.setup_tree()
@@ -94,13 +96,20 @@ def test_by_psm_tree_type(tree_type: TreeType):
                 start_time = time.time()
                 _ = [self.assertTrue(len(tree.search(get_mz_bounds(psm.mz, PsmTreeTester.PPM),
                                                      get_rt_bounds(psm.rt, PsmTreeTester.RT_OFF),
-                                                     get_ook0_bounds(psm.ook0, PsmTreeTester.OOK0_TOL))) > 0) for psm in psms]
+                                                     get_ook0_bounds(psm.ook0, PsmTreeTester.OOK0_TOL))) > 0) for psm in
+                     psms]
                 search_time = (time.time() - start_time)
                 print(f"N: {n:,}, search_time: {search_time}")
                 print(f"N: {n:,}, search_time_per_psm: {(time.time() - start_time) / n}")
 
                 performance_dict[n] = {'add_time': add_time, 'search_time': search_time}
             print(performance_dict)
+
+            file_name = os.path.join('C:/Users/jeffl/OneDrive/Scripps Research Institute/KD-Tree/Performance Logs', tree_type.name +".txt")
+            with open(file_name, 'w') as newfile:
+                newfile.write(str(performance_dict))
+            newfile.close()
+            print(file_name)
 
         def test_add(self):
             self.tree.add(self.psms[0])
@@ -121,7 +130,6 @@ def test_by_psm_tree_type(tree_type: TreeType):
                                            get_rt_bounds(psm.rt, PsmTreeTester.RT_OFF),
                                            get_ook0_bounds(psm.ook0, PsmTreeTester.OOK0_TOL))
                 self.assertTrue(psm in results)
-            # print(self.tree)
 
         def test_edges(self):
             for x in self.psms:
@@ -130,11 +138,7 @@ def test_by_psm_tree_type(tree_type: TreeType):
                 results = self.tree.search(get_mz_bounds(psm.mz, 0),
                                            get_rt_bounds(psm.rt, 0),
                                            get_ook0_bounds(psm.ook0, 0))
-
-                #if psm in results:
-                #    print("psm success: ", psm)
-                #elif psm not in results:
-                #    print("psm not in results")
+                self.assertTrue(psm in results)
 
         def test_not_within(self):
             for psm in self.psms:
@@ -145,9 +149,7 @@ def test_by_psm_tree_type(tree_type: TreeType):
                                            get_ook0_bounds(0.001, 0))
                 self.assertFalse(psm in results)
 
-        """
-        setting the lower bound of the range equal to the exact mz value 
-        """
+        """ ----------- Searching for each value's upper & lower bound ------------ """
 
         def test_mz_lower(self):
             for new in self.psms:
@@ -155,11 +157,9 @@ def test_by_psm_tree_type(tree_type: TreeType):
             for psm in self.psms:
                 ppm_offset = psm.mz * 20 / 1_000_000
                 mz_bounds = Boundary(psm.mz, psm.mz + ppm_offset)
-
                 results = self.tree.search(mz_bounds,
                                            get_rt_bounds(psm.rt, 10000),
                                            get_ook0_bounds(psm.ook0, 1000))
-                #print(results)
                 self.assertTrue(psm in results)
 
         def test_mz_upper(self):
@@ -168,11 +168,9 @@ def test_by_psm_tree_type(tree_type: TreeType):
             for psm in self.psms:
                 ppm_offset = psm.mz * 20 / 1_000_000
                 mz_bounds = Boundary(psm.mz - ppm_offset, psm.mz)
-
                 results = self.tree.search(mz_bounds,
                                            get_rt_bounds(psm.rt, 10000),
                                            get_ook0_bounds(psm.ook0, 1000))
-                #print(results)
                 self.assertTrue(psm in results)
 
         def test_rt_lower(self):
@@ -181,7 +179,6 @@ def test_by_psm_tree_type(tree_type: TreeType):
             for psm in self.psms:
                 rt_offset = psm.rt + PsmTreeTester.RT_OFF
                 rt_bounds = Boundary(psm.rt, psm.rt + rt_offset)
-
                 results = self.tree.search(get_mz_bounds(psm.mz, 1000),
                                            rt_bounds,
                                            get_ook0_bounds(psm.ook0, 1000))
@@ -193,7 +190,6 @@ def test_by_psm_tree_type(tree_type: TreeType):
             for psm in self.psms:
                 rt_offset = psm.rt + PsmTreeTester.RT_OFF
                 rt_bounds = Boundary(psm.rt - rt_offset, psm.rt)
-
                 results = self.tree.search(get_mz_bounds(psm.mz, 1000),
                                            rt_bounds,
                                            get_ook0_bounds(psm.ook0, 1000))
@@ -205,7 +201,6 @@ def test_by_psm_tree_type(tree_type: TreeType):
             for psm in self.psms:
                 ook0_tolerance = psm.ook0 + psm.ook0 * PsmTreeTester.OOK0_TOL
                 ook0_bounds = Boundary(psm.ook0, psm.ook0 + ook0_tolerance)
-
                 results = self.tree.search(get_mz_bounds(psm.mz, 1000),
                                            get_rt_bounds(psm.rt, 10000),
                                            ook0_bounds)
@@ -217,7 +212,6 @@ def test_by_psm_tree_type(tree_type: TreeType):
             for psm in self.psms:
                 ook0_tolerance = psm.ook0 - psm.ook0 * PsmTreeTester.OOK0_TOL
                 ook0_bounds = Boundary(psm.ook0 - ook0_tolerance, psm.ook0)
-
                 results = self.tree.search(get_mz_bounds(psm.mz, 1000),
                                            get_rt_bounds(psm.rt, 10000),
                                            ook0_bounds)
@@ -235,61 +229,51 @@ def test_by_psm_tree_type(tree_type: TreeType):
                                        get_ook0_bounds(psm.ook0, PsmTreeTester.OOK0_TOL))
                 self.assertTrue(psm in results)
 
-        # 1) add psms to tree
-        # 2) search all psms's
-        #   - verify each psm in results
-        #   - verify that all psms returned by results are within bounds
-        """def test_generate_random_psm(self):
-            N = 10_000
-            psms = [generate_random_psm() for i in range(N)]
-            for psm in psms:
-                self.tree.add(psm)
-                results = self.tree.search(get_mz_bounds(psm.mz, PsmTreeTester.PPM),
-                                           get_rt_bounds(psm.rt, PsmTreeTester.RT_OFF), 
-                                           get_ook0_bounds(psm.ook0, PsmTreeTester.OOK0_TOL))
-                self.assertTrue(psm in results)"""
-
-
     return PsmTreeTester
 
 
-"""for tree_type in TreeType:
-    class TreeTester(test_by_psm_tree_type(tree_type)):
-        pass"""
+""" ----------- Repeats each function above for each respective Tree Type -------------- """
+
 
 class KDTreeTester(test_by_psm_tree_type(TreeType.KD_TREE)):
     pass
 
+
 class SLTreeTester(test_by_psm_tree_type(TreeType.SORTED_LIST)):
     pass
+
 
 class ListTreeTester(test_by_psm_tree_type(TreeType.LIST)):
     pass
 
+
 class FastBinTreeTester(test_by_psm_tree_type(TreeType.FAST_BINARY)):
     pass
+
 
 class FastAVLTreeTester(test_by_psm_tree_type(TreeType.FAST_AVL)):
     pass
 
+
 class FastRBTreeTester(test_by_psm_tree_type(TreeType.FAST_RB)):
     pass
+
 
 class BinTreeTester(test_by_psm_tree_type(TreeType.BINARY)):
     pass
 
+
 class AVLTreeTester(test_by_psm_tree_type(TreeType.AVL)):
     pass
+
 
 class RBTreeTester(test_by_psm_tree_type(TreeType.RB_TREE)):
     pass
 
+
 class IntervalTreeTester(test_by_psm_tree_type(TreeType.INTERVAL_TREE)):
     pass
 
+
 if __name__ == '__main__':
     unittest.main()
-
-"""psms = []
-        for i in range(10_000):
-            psms.append(generate_random_psm())"""
