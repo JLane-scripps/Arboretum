@@ -21,13 +21,13 @@ class TreeType(Enum):
     KD_TREE = 1
     SORTED_LIST = 2
     LIST = 3
-    FAST_BINARY = 4
-    FAST_AVL = 5
-    FAST_RB = 6
-    BINARY = 7
-    AVL = 8
-    RB_TREE = 9
-    INTERVAL_TREE = 10
+    #FAST_BINARY = 4
+    #FAST_AVL = 5
+    #FAST_RB = 6
+    #BINARY = 7
+    #AVL = 8
+    #RB_TREE = 9
+    #INTERVAL_TREE = 10
 
 
 def psm_tree_constructor(tree_type: TreeType):
@@ -37,20 +37,20 @@ def psm_tree_constructor(tree_type: TreeType):
         return PsmSortedList
     if tree_type == TreeType.LIST:
         return PsmList
-    if tree_type == TreeType.FAST_BINARY:
-        return PsmFastBinaryTree
-    if tree_type == TreeType.FAST_AVL:
-        return PsmFastAvlTree
-    if tree_type == TreeType.FAST_RB:
-        return PsmFastRBTree
-    if tree_type == TreeType.BINARY:
-        return PsmBinaryTree
-    if tree_type == TreeType.AVL:
-        return PsmAvlTree
-    if tree_type == TreeType.RB_TREE:
-        return PsmRBTree
-    if tree_type == TreeType.INTERVAL_TREE:
-        return PsmIntervalTree
+        """if tree_type == TreeType.FAST_BINARY:
+            return PsmFastBinaryTree
+        if tree_type == TreeType.FAST_AVL:
+            return PsmFastAvlTree
+        if tree_type == TreeType.FAST_RB:
+            return PsmFastRBTree
+        if tree_type == TreeType.BINARY:
+            return PsmBinaryTree
+        if tree_type == TreeType.AVL:
+            return PsmAvlTree
+        if tree_type == TreeType.RB_TREE:
+            return PsmRBTree
+        if tree_type == TreeType.INTERVAL_TREE:
+            return PsmIntervalTree"""
     else:
         return NotImplemented
 
@@ -85,7 +85,7 @@ def test_by_psm_tree_type(tree_type: TreeType):
             """
             print("\nPerformance for", self.setup_tree)
             performance_dict = {}
-            for n in [10, 100, 500, 1_000]:
+            for n in [10, 100, 500, 1_000, 2_500, 5_000, 10_000, 50_000, 80_000, 100_000, 250_000, 400_000, 500_000]:
                 tree = self.setup_tree()
                 start_time = time.time()
                 psms = [generate_random_psm() for _ in range(n)]
@@ -247,7 +247,7 @@ class ListTreeTester(test_by_psm_tree_type(TreeType.LIST)):
     pass
 
 
-class FastBinTreeTester(test_by_psm_tree_type(TreeType.FAST_BINARY)):
+"""class FastBinTreeTester(test_by_psm_tree_type(TreeType.FAST_BINARY)):
     pass
 
 
@@ -272,7 +272,7 @@ class RBTreeTester(test_by_psm_tree_type(TreeType.RB_TREE)):
 
 
 class IntervalTreeTester(test_by_psm_tree_type(TreeType.INTERVAL_TREE)):
-    pass
+    pass"""
 
 
 if __name__ == '__main__':
