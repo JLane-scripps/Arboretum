@@ -1,1 +1,10 @@
-mj
+1. Implement Arborist 
+(+ Tester for Arborist, might be Simulator)
+2. Simulator
+	(list of .sqt files # the PSMTree)
+	will return search time and tree creation time. i.e. Save & load.
+	Paser could be online version of this sim -> Ty will do this
+
+
+Lowest Priority of project: 
+refining bintrees to be closer to KD Tree or Interval Tree. For the sake of having lots of trees in Forest.
