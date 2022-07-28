@@ -4,7 +4,7 @@ import matplotlib as matplotlib
 from matplotlib import pyplot as plt
 import pandas as pd
 
-path = 'C:/Users/jeffl/OneDrive/Scripps Research Institute/KD-Tree/Performance Logs'
+path = 'C:/Users/jeffl/OneDrive/Scripps Research Institute/KD-Tree/Performance Logs Temp'
 folder = os.scandir(path)
 labels = []
 y_add = []

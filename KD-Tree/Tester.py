@@ -1,92 +1,53 @@
 import unittest
-import time
 import random
+import time
 import os.path
-from .Arborist import *
+from .Forest import *
 
 
 def generate_random_psm() -> PSM:
     letters = 'ARNDCEQGHILKMFPSTWYV'
     peptide_string = ''.join(random.choice(letters) for i in range(random.randint(6, 30)))
     return PSM(
-        charge=random.randint(1, 3),
-        mz=random.uniform(400, 1800),
+        charge=random.randint(1, 5),
+        mz=random.uniform(100, 1800),
         rt=random.uniform(0, 10_000),
         ook0=random.uniform(0.4, 1.8),
         sequence=peptide_string
     )
 
 
-class TreeType(Enum):
-    KD_TREE = 1
-    #SORTED_LIST = 2
-    #LIST = 3
-    #FAST_BINARY = 4
-    #FAST_AVL = 5
-    #FAST_RB = 6
-    #BINARY = 7
-    #AVL = 8
-    #RB_TREE = 9
-    INTERVAL_TREE = 10
-
-
-def psm_tree_constructor(tree_type: TreeType):
-    if tree_type == TreeType.KD_TREE:
-        return PsmKdTree
-    """if tree_type == TreeType.SORTED_LIST:
-        return PsmSortedList
-    if tree_type == TreeType.LIST:
-        return PsmList
-    if tree_type == TreeType.FAST_BINARY:
-        return PsmFastBinaryTree
-    if tree_type == TreeType.FAST_AVL:
-        return PsmFastAvlTree
-    if tree_type == TreeType.FAST_RB:
-        return PsmFastRBTree
-    if tree_type == TreeType.BINARY:
-        return PsmBinaryTree
-    if tree_type == TreeType.AVL:
-        return PsmAvlTree
-    if tree_type == TreeType.RB_TREE:
-        return PsmRBTree"""
-    if tree_type == TreeType.INTERVAL_TREE:
-            return PsmIntervalTree
-    else:
-        return NotImplemented
-
-
 def test_by_psm_tree_type(tree_type: TreeType):
     class PsmTreeTester(unittest.TestCase):
-        PPM = 20
-        RT_OFF = 100
+        PPM = 50
+        RT_OFF = 250
         OOK0_TOL = 0.05
 
         def setUp(self):
-            self.setup_tree = psm_tree_constructor(tree_type)
-            self.tree = self.setup_tree()
+            self.tree = psm_tree_constructor(tree_type)
             self.psms = [PSM(1, 1005.0, 250, 0.9, "PEPTIDE"),
-                         PSM(1, 1100.0, 260, 0.9, "PETIDE"),
-                         PSM(1, 1150.0, 260, 0.9, "PETIDE"),
-                         PSM(1, 1200.0, 252, 0.9, "PEP"),
-                         PSM(2, 1000.0, 250, 0.9, "PEP"),
-                         PSM(2, 1050.0, 300, 0.9, "PEPTI"),
-                         PSM(3, 1000.0, 250, 0.9, "PEPTIDE"),
-                         PSM(1, 3000.0, 250, 0.9, "PEPTIDE")
+                         #PSM(1, 1100.0, 260, 0.9, "PETIDE"),
+                         #PSM(1, 1150.0, 260, 0.9, "PETIDE"),
+                         #PSM(1, 1200.0, 252, 0.9, "PEP"),
+                         PSM(2, 2000.0, 250, 0.9, "PEP"),
+                         #PSM(2, 1050.0, 300, 0.9, "PEPTI"),
+                         PSM(3, 5000.0, 250, 0.9, "PEPTIDE"),
+                         #PSM(1, 3000.0, 250, 0.9, "PEPTIDE")
                          ]  # static psm's for the sake of testing.
 
         def test_add_search_performance(self):
             """
-            Utilizes every function.
-            Creates tree.
-            Adds static psms and searches for them.
-            Generates random psms in increasingly large quantities and searches for them.
-            Measures search times.
-            Saves & Loads trees.
+            # Utilizes every function.
+            # Creates tree.
+            # Adds static psms and searches for them.
+            # Generates random psms in increasingly large quantities and searches for them.
+            # Measures search times.
+            # Saves & Loads trees.
             """
-            print("\nPerformance for", self.setup_tree)
+            print("\nPerformance for", tree_type.name)
             performance_dict = {}
-            for n in [10, 100, 500, 1_000, 2_500, 5_000, 10_000, 50_000, 80_000, 100_000]: #, 250_000, 400_000, 500_000
-                tree = self.setup_tree()
+            for n in [10, 100, 500, 1_000, 2_500, 5_000, 10_000, 50_000, 75_000, 100_000 , 250_000, 400_000, 500_000] : #]:
+                tree = psm_tree_constructor(tree_type)
                 start_time = time.time()
                 psms = [generate_random_psm() for _ in range(n)]
                 _ = [tree.add(psm) for psm in psms]
@@ -105,11 +66,11 @@ def test_by_psm_tree_type(tree_type: TreeType):
                 performance_dict[n] = {'add_time': add_time, 'search_time': search_time}
             print(performance_dict)
 
-            file_name = os.path.join('C:/Users/jeffl/OneDrive/Scripps Research Institute/KD-Tree/Performance Logs', tree_type.name +".txt")
+            file_name = os.path.join('C:/Users/jeffl/OneDrive/Scripps Research Institute/KD-Tree/Performance Logs Temp', tree_type.name +".txt")
             with open(file_name, 'w') as newfile:
                 newfile.write(str(performance_dict))
             newfile.close()
-            print(file_name)
+
 
         def test_add(self):
             self.tree.add(self.psms[0])
@@ -148,6 +109,7 @@ def test_by_psm_tree_type(tree_type: TreeType):
                                            get_rt_bounds(0.01, 0),
                                            get_ook0_bounds(0.001, 0))
                 self.assertFalse(psm in results)
+
 
         """ ----------- Searching for each value's upper & lower bound ------------ """
 
@@ -221,7 +183,7 @@ def test_by_psm_tree_type(tree_type: TreeType):
             for psm in self.psms:
                 self.tree.add(psm)
             self.tree.save('temp.txt')
-            tree2 = self.setup_tree()
+            tree2 = psm_tree_constructor(tree_type)
             tree2.load('temp.txt')
             for psm in self.psms:
                 results = tree2.search(get_mz_bounds(psm.mz, PsmTreeTester.PPM),
@@ -234,29 +196,19 @@ def test_by_psm_tree_type(tree_type: TreeType):
 
 """ ----------- Repeats each function above for each respective Tree Type -------------- """
 
-
+"""
 class KDTreeTester(test_by_psm_tree_type(TreeType.KD_TREE)):
     pass
 
-"""
 class SLTreeTester(test_by_psm_tree_type(TreeType.SORTED_LIST)):
     pass
 
-
 class ListTreeTester(test_by_psm_tree_type(TreeType.LIST)):
     pass
-
-
-class FastBinTreeTester(test_by_psm_tree_type(TreeType.FAST_BINARY)):
+    
+class IntervalTreeTester(test_by_psm_tree_type(TreeType.INTERVAL_TREE)):
     pass
-
-
-class FastAVLTreeTester(test_by_psm_tree_type(TreeType.FAST_AVL)):
-    pass
-
-
-class FastRBTreeTester(test_by_psm_tree_type(TreeType.FAST_RB)):
-    pass
+"""
 
 
 class BinTreeTester(test_by_psm_tree_type(TreeType.BINARY)):
@@ -268,12 +220,17 @@ class AVLTreeTester(test_by_psm_tree_type(TreeType.AVL)):
 
 
 class RBTreeTester(test_by_psm_tree_type(TreeType.RB_TREE)):
-    pass"""
-
-
-class IntervalTreeTester(test_by_psm_tree_type(TreeType.INTERVAL_TREE)):
     pass
 
+
+class FastAVLTree(test_by_psm_tree_type(TreeType.FAST_AVL)):
+    pass
+
+class FastRBTree(test_by_psm_tree_type(TreeType.FAST_RB)):
+    pass
+
+class FastBinaryTree(test_by_psm_tree_type(TreeType.FAST_BINARY)):
+    pass
 
 if __name__ == '__main__':
     unittest.main()

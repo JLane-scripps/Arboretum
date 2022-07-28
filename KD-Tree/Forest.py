@@ -1,19 +1,61 @@
 from abc import ABC, abstractmethod
+from enum import Enum
 import numpy as np
-from dataclasses import field
+from dataclasses import field, dataclass
 from threading import Lock
-from typing import List
+from typing import List, Any
 from bisect import bisect, bisect_left
 from collections import deque
+from kdtree import KdTree
 from intervaltree import IntervalTree
-from bintrees import FastBinaryTree, FastAVLTree, FastRBTree, BinaryTree, AVLTree, RBTree
 import _pickle as cPickle
-from .boundary import *
-from .point_util import *
-from .red_black_tree import *
-from .ty_kdtree import *
+from bintrees import AVLTree, RBTree, BinaryTree
+from .boundary import Boundary, psm_attributes_in_bound, get_mz_bounds, get_rt_bounds, get_ook0_bounds
+from kdtree.point import Point
+import sys
+
+sys.setrecursionlimit(10 ** 6)
 
 
+# All available tree types are as follows. This list must be updated whenever TreeTypes are removed or added.
+class TreeType(Enum):
+    KD_TREE = 1
+    SORTED_LIST = 2
+    LIST = 3
+    FAST_AVL = 4
+    FAST_RB = 5
+    FAST_BINARY = 6
+    BINARY = 7
+    AVL = 8
+    RB_TREE = 9
+    INTERVAL_TREE = 10
+
+
+
+# TreeType assignments corresponding to above
+def psm_tree_constructor(tree_type: TreeType):
+    if tree_type == TreeType.KD_TREE:
+        return PsmKdTree()
+    if tree_type == TreeType.SORTED_LIST:
+        return PsmSortedList()
+    if tree_type == TreeType.LIST:
+        return PsmList()
+    if tree_type == TreeType.BINARY:
+        return PsmBinaryTree()
+    if tree_type == TreeType.AVL:
+        return PsmAvlTree()
+    if tree_type == TreeType.RB_TREE:
+        return PsmRBTree()
+    if tree_type == TreeType.FAST_BINARY:
+        return PsmRBTree()
+    if tree_type == TreeType.FAST_AVL:
+        return PsmRBTree()
+    if tree_type == TreeType.FAST_RB:
+        return PsmRBTree()
+    if tree_type == TreeType.INTERVAL_TREE:
+        return PsmIntervalTree()
+    else:
+        return NotImplemented
 
 
 @dataclass
@@ -29,6 +71,7 @@ class PSM:
     rt: float
     ook0: float
     sequence: str
+
     # Example: psm = PSM(charge=1, mz=100, rt=100, ook0=0.5, sequence="PEPTIDE")
 
     def in_boundary(self, mz_boundary: Boundary, rt_boundary: Boundary, ook0_boundary: Boundary) -> bool:
@@ -75,11 +118,11 @@ class AbstractPsmTree(ABC):
         """
         pass
 
-    def len(self) -> int:
+    def __len__(self) -> int:
         """
         returns the length of the tree
         """
-        pass
+        return len(self.tree)
 
     def save(self, FILE_NAME):
         """
@@ -99,24 +142,27 @@ class AbstractPsmTree(ABC):
 @dataclass
 class PsmKdTree(AbstractPsmTree):
     """
-    KDTree, my beloved. Might need some thorough investigation and refinement. Currently slightly slower than SortedList
+    KDTree, my beloved. Slightly slower add time than IntervalTree (BEFORE 80k psm's ONLY). Better > 80K.
+    Fastest Tree in the West.
     """
-    tree: KdTree = KdTree(3, [])
+    tree: KdTree = field(default_factory=lambda: KdTree(3, []))
 
     def add(self, psm: PSM):
-        self.tree.add(Point.create([psm.mz, psm.rt, psm.ook0], psm))
+        p = Point([psm.mz, psm.rt, psm.ook0])
+        p.data = psm
+        self.tree.add_point(p)
 
     def search(self, mz_bounds: Boundary, rt_bounds: Boundary, ook0_bounds: Boundary):
         bounds = [[mz_bounds.lower, mz_bounds.upper],
                   [rt_bounds.lower, rt_bounds.upper],
                   [ook0_bounds.lower, ook0_bounds.upper]]
-        results = self.tree.get_bounded(bounds)
+        results = self.tree.get_points_within_bounds(bounds)
         return [res.data for res in results]
 
-    def len(self) -> int:
-        return len(self.tree)
+    def __len__(self) -> int:
+        return len(self.tree._points)
 
-    def save(self, file_name: str) -> None:
+    """def save(self, file_name: str) -> None:
         with open(file_name, "w") as file:
             for point in self.tree._points:
                 file.write(point.data.serialize())
@@ -125,15 +171,16 @@ class PsmKdTree(AbstractPsmTree):
         with open(file_name) as file:
             for line in file:
                 psm = PSM.deserialize(line)
-                self.add(psm)
+                self.add(psm)"""
 
 
 @dataclass
 class PsmIntervalTree(AbstractPsmTree):
     """
-    Standard Interval Tree. Performs O(n * log n)
+    Standard Interval Tree. Performs O(n * log n).
+    2nd best Tree, beating SortedList's disastrous add time.
     """
-    tree: IntervalTree = IntervalTree()
+    tree: IntervalTree = field(default_factory=lambda: IntervalTree())
     ppm: int = 50
 
     def add(self, psm: PSM):
@@ -147,16 +194,17 @@ class PsmIntervalTree(AbstractPsmTree):
     def clear(self):
         self.tree.clear()
 
-    def len(self) -> int:
+    def __len__(self) -> int:
         return len(self.tree)
 
 
 @dataclass
 class PsmSortedList(AbstractPsmTree):
     """
+    Rank #3.
     PsmSortedList can use either binary search bisect functions or a deque to be much faster than PsmList...
     but still long. bisect had significantly shorter search times but horrendous add times
-    deque had slightly better add times but horrendous search times (specifically after linked lists of 100k psm's)
+    deque had horrendous search times (after linked lists of 100k psm's) but slightly faster add times.
     """
     tree: List[PSM] = field(default_factory=lambda: deque())  # The tree is composed of lists of PSM's
     mz_list: [float] = field(default_factory=lambda: deque())  # this is a list of just mz values, for matching indexes
@@ -181,9 +229,6 @@ class PsmSortedList(AbstractPsmTree):
             if self.mz_list[i] > mz_boundary.upper:
                 break
         return res
-
-    def len(self) -> int:
-        return len(self.tree)
 
     def save(self, file_name: str) -> None:
         with open(file_name, "w") as file:
@@ -215,9 +260,6 @@ class PsmList(AbstractPsmTree):
         self.tree.append(psm)
         return
 
-    def len(self) -> int:
-        return len(self.tree)
-
     def save(self, file_name: str) -> None:
         with open(file_name, "w") as file:
             for psm in self.tree:
@@ -235,7 +277,7 @@ class PsmBinTrees(AbstractPsmTree):
     """
     Binary Search Tree. 1 Dimensional, so only compares mz values against each other for storage and search.
     Slightly above mediocre speed.
-    Basis for some tree types, such as RB, AVL, Binary, and each of their "Fast" versions.
+    Basis for tree types RB, AVL, & Binary
     """
 
     # pass in a PSM. The mz is extracted and put into list form, then appended to the tree.
@@ -247,38 +289,40 @@ class PsmBinTrees(AbstractPsmTree):
         pass in each of the 3 ranges. Only uses mz to sort in 1 dimension, but ensures all values are acceptable.
         hardcoded upper bound to prevent the upper bound itself from being sliced off and discounted.
         """
-        res = self.tree[mz_bounds.lower:mz_bounds.upper + 0.00001].values()
+        res = self.tree.range_query_values([mz_bounds.lower, mz_bounds.upper])
         return [psm for psm_list in res for psm in psm_list if psm.in_boundary(mz_bounds, rt_bounds, ook0_bounds)]
 
     def clear(self):
         self.tree.clear()
 
+    def save(self, FILE_NAME):
+        """
+        saves all psm's within tree to a text file
+        """
+        with open(FILE_NAME, "wb") as output_file:
+            cPickle.dump(self.tree, output_file)
 
-@dataclass
-class PsmFastBinaryTree(PsmBinTrees):
-    tree: FastBinaryTree = FastBinaryTree()
+    def load(self, FILE_NAME):
+        """
+        adds psm's from text file to PSMTree
+        """
+        with open(FILE_NAME, "rb") as input_file:
+            self.tree = cPickle.load(input_file)
 
-
-@dataclass
-class PsmFastAvlTree(PsmBinTrees):
-    tree: FastAVLTree = FastAVLTree()
-
-
-@dataclass
-class PsmFastRBTree(PsmBinTrees):
-    tree: FastRBTree = FastRBTree()
+    def __len__(self):
+        return len(self.tree)
 
 
 @dataclass
 class PsmBinaryTree(PsmBinTrees):
-    tree: BinaryTree = BinaryTree()
+    tree: BinaryTree = field(default_factory=lambda: BinaryTree())
 
 
 @dataclass
 class PsmAvlTree(PsmBinTrees):
-    tree: AVLTree = AVLTree()
+    tree: AVLTree = field(default_factory=lambda: AVLTree())
 
 
 @dataclass
 class PsmRBTree(PsmBinTrees):
-    tree: RBTree = RBTree()
+    tree: RBTree = field(default_factory=lambda: RBTree())
