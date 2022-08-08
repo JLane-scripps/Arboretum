@@ -8,9 +8,9 @@ from bisect import bisect, bisect_left
 from collections import deque
 from kdtree import KdTree
 from intervaltree import IntervalTree
-import _pickle as cPickle
-from bintrees import AVLTree, RBTree, BinaryTree
-from .boundary import Boundary, psm_attributes_in_bound, get_mz_bounds, get_rt_bounds, get_ook0_bounds
+import _pickle as pickle
+from bintrees import AVLTree, RBTree, BinaryTree, FastAVLTree, FastBinaryTree, FastRBTree
+from boundary import Boundary, psm_attributes_in_bound, get_mz_bounds, get_rt_bounds, get_ook0_bounds
 from kdtree.point import Point
 import sys
 
@@ -47,11 +47,11 @@ def psm_tree_constructor(tree_type: TreeType):
     if tree_type == TreeType.RB_TREE:
         return PsmRBTree()
     if tree_type == TreeType.FAST_BINARY:
-        return PsmRBTree()
+        return PsmFastBinaryTree()
     if tree_type == TreeType.FAST_AVL:
-        return PsmRBTree()
+        return PsmFastAVLTree()
     if tree_type == TreeType.FAST_RB:
-        return PsmRBTree()
+        return PsmFastRBTree()
     if tree_type == TreeType.INTERVAL_TREE:
         return PsmIntervalTree()
     else:
@@ -102,7 +102,6 @@ class AbstractPsmTree(ABC):
     The abstract idea of a tree that each of our tree types should follow, even when they are not true trees.
     """
     tree: Any
-    _lock: Lock = Lock()
 
     @abstractmethod
     def search(self, mz_boundary: Boundary, rt_boundary: Boundary, ook0_boundary: Boundary) -> List[PSM]:
@@ -129,14 +128,14 @@ class AbstractPsmTree(ABC):
         saves all psm's within tree to a text file
         """
         with open(FILE_NAME, "wb") as output_file:
-            cPickle.dump(self.tree, output_file)
+            pickle.dump(self.tree, FILE_NAME)
 
     def load(self, FILE_NAME):
         """
         adds psm's from text file to PSMTree
         """
         with open(FILE_NAME, "rb") as input_file:
-            self.tree = cPickle.load(input_file)
+            self.tree = pickle.load(FILE_NAME)
 
 
 @dataclass
@@ -161,17 +160,6 @@ class PsmKdTree(AbstractPsmTree):
 
     def __len__(self) -> int:
         return len(self.tree._points)
-
-    """def save(self, file_name: str) -> None:
-        with open(file_name, "w") as file:
-            for point in self.tree._points:
-                file.write(point.data.serialize())
-
-    def load(self, file_name: str) -> None:
-        with open(file_name) as file:
-            for line in file:
-                psm = PSM.deserialize(line)
-                self.add(psm)"""
 
 
 @dataclass
@@ -295,19 +283,6 @@ class PsmBinTrees(AbstractPsmTree):
     def clear(self):
         self.tree.clear()
 
-    def save(self, FILE_NAME):
-        """
-        saves all psm's within tree to a text file
-        """
-        with open(FILE_NAME, "wb") as output_file:
-            cPickle.dump(self.tree, output_file)
-
-    def load(self, FILE_NAME):
-        """
-        adds psm's from text file to PSMTree
-        """
-        with open(FILE_NAME, "rb") as input_file:
-            self.tree = cPickle.load(input_file)
 
     def __len__(self):
         return len(self.tree)
@@ -326,3 +301,18 @@ class PsmAvlTree(PsmBinTrees):
 @dataclass
 class PsmRBTree(PsmBinTrees):
     tree: RBTree = field(default_factory=lambda: RBTree())
+
+
+@dataclass
+class PsmFastRBTree(PsmBinTrees):
+    tree: FastRBTree = field(default_factory=lambda: FastRBTree())
+
+
+@dataclass
+class PsmFastAVLTree(PsmBinTrees):
+    tree: FastAVLTree = field(default_factory=lambda: FastAVLTree())
+
+
+@dataclass
+class PsmFastBinaryTree(PsmBinTrees):
+    tree: FastBinaryTree = field(default_factory=lambda: FastBinaryTree())

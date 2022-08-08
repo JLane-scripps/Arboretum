@@ -1,8 +1,5 @@
-from enum import Enum
 from typing import Dict
-from .boundary import Boundary
-from .constants import *
-from .Forest import*
+from Forest import *
 
 
 
@@ -19,18 +16,27 @@ class PSMArborist:
 
     _lock: Lock = Lock()
 
+#  Find way to create a folder during runtime and save all trees within
     def save(self, file):
         print(f"Saving PsmTree: {file}")
+        # Create folder here
         self._lock.acquire()
-        with open(file, "wb") as output_file:
-            cPickle.dump(self.trees, output_file)
+        with open(file, 'wb') as output_file:
+            pickle.dump(self.trees, output_file, 5)
+        """for charge in self.trees:
+                #loop through to get file name of trees appended with charge
+                self.trees[charge].save(output_file)"""
         self._lock.release()
 
+
+# pass a folder, look inside for saved files, and load them all as trees
     def load(self, file):
         print(f"loading PsmTree: {file}")
         self._lock.acquire()
-        with open(file, "rb") as input_file:
-            self.trees = cPickle.load(input_file)
+        with open(file, 'rb') as input_file:
+            self.trees = pickle.load(input_file)
+        """with open(file, "rb") as input_file:
+            self.trees = pickle.load(input_file)"""
         self._lock.release()
 
     def add(self, psm: PSM):
@@ -40,13 +46,16 @@ class PSMArborist:
         """
         charge = psm.charge
         if charge not in self.trees:
-            self.trees[charge] = psm_tree_constructor(self.tree_type)()
+            self.trees[charge] = psm_tree_constructor(self.tree_type)
         self.trees[charge].add(psm)
 
     def search(self, charge, mz_bounds, rt_bounds, ook0_bounds):
         if charge not in self.trees:
             return []
 
+        mz_bounds = Boundary(mz_bounds[0], mz_bounds[1])
+        rt_bounds = Boundary(rt_bounds[0], rt_bounds[1])
+        ook0_bounds = Boundary(ook0_bounds[0], ook0_bounds[1])
         results = self.trees[charge].search(mz_bounds, rt_bounds, ook0_bounds)
 
         return results

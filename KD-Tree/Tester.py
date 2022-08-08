@@ -44,7 +44,7 @@ def test_by_psm_tree_type(tree_type: TreeType):
             # Measures search times.
             # Saves & Loads trees.
             """
-            print("\nPerformance for", tree_type.name)
+            """print("\nPerformance for", tree_type.name)
             performance_dict = {}
             for n in [10, 100, 500, 1_000, 2_500, 5_000, 10_000, 50_000, 75_000, 100_000 , 250_000, 400_000, 500_000] : #]:
                 tree = psm_tree_constructor(tree_type)
@@ -66,10 +66,10 @@ def test_by_psm_tree_type(tree_type: TreeType):
                 performance_dict[n] = {'add_time': add_time, 'search_time': search_time}
             print(performance_dict)
 
-            file_name = os.path.join('C:/Users/jeffl/OneDrive/Scripps Research Institute/KD-Tree/Performance Logs Temp', tree_type.name +".txt")
+            file_name = os.path.join('C:/Users/jeffl/OneDrive/Scripps Research Institute/KD-Tree/Performance Logs Temp', tree_type.name +'.txt')
             with open(file_name, 'w') as newfile:
                 newfile.write(str(performance_dict))
-            newfile.close()
+            newfile.close()"""
 
 
         def test_add(self):
@@ -179,12 +179,20 @@ def test_by_psm_tree_type(tree_type: TreeType):
                                            ook0_bounds)
                 self.assertTrue(psm in results)
 
+#ADD TIME STAMPS FOR SAVE & LOAD
         def test_save_load(self):
             for psm in self.psms:
                 self.tree.add(psm)
+            start_time = time.time()
             self.tree.save('temp.txt')
+            save_time = time.time() - start_time
+            print("save time: ", save_time)
             tree2 = psm_tree_constructor(tree_type)
+
+            start_time = time.time()
             tree2.load('temp.txt')
+            load_time = time.time() - start_time
+            print ("load time: ", load_time)
             for psm in self.psms:
                 results = tree2.search(get_mz_bounds(psm.mz, PsmTreeTester.PPM),
                                        get_rt_bounds(psm.rt, PsmTreeTester.RT_OFF),

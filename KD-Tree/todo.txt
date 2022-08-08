@@ -32,5 +32,10 @@ Our goal is to measure the increase in ADD TIMES, LOAD TIMES, SAVE TIMES, and QU
 
 ALSO write new performance tester for TY.
 Use / look at code for Performance Tester 2 in his github.
-Make 1 tree, adding N reandomly generated psms to it, querying M psms from it, then aedding N, Querying M, ad nauseum until reaching max tree size.
+Make 1 tree, adding N reandomly generated psms to it, querying M psms from it, then adding N, Querying M, ad nauseum until reaching max tree size.
 replace same variable measuring add time and search time, so by the end it's just 1 variable you can print the value of. 
+
+
+try pickling arborist
+if that doesn't work, loop through each tree
+pass folders instead of individual files; needs to load more than the last one
