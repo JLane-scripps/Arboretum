@@ -21,13 +21,13 @@ PPM = 50
 RT_OFF = 250
 OOK0_TOL = 5
 
-tree_type = TreeType.FAST_BINARY  # choose which tree type to simulate here
+tree_type = TreeType.SORTED_LIST  # choose which tree type to simulate here
 runs = 5  # the number of times we will add [leaf_count] leaves (PSMs) to the tree
 leaves = []  # the list of psms (aka 'leaves' on the tree)
 leaf_count = 50_000  # The number of PSM's we will generate and add to the tree in each run.
 canopy = 0  # Total number of leaves, updated after each run. (leaf_count * runs so far)
 performance_dict = {}
-out_file = "leaves.txt"
+out_directory = "leaves"
 
 """ ----- Simulation -----"""
 for x in range(runs):
@@ -65,14 +65,14 @@ for x in range(runs):
 
     # save time
     start_time = time.time()
-    arb.save(out_file)
+    arb.save(out_directory)
     save_time = (time.time() - start_time)
     print(f"N: {canopy:,}, save time: {save_time:,}")
 
     # load time
     start_time = time.time()
     arb = PSMArborist(tree_type)
-    arb.load(out_file)
+    arb.load(out_directory)
     load_time = (time.time() - start_time)
     print(f"N: {canopy:,}, load time: {load_time:,}")
 

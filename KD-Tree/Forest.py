@@ -2,17 +2,20 @@ from abc import ABC, abstractmethod
 from enum import Enum
 import numpy as np
 from dataclasses import field, dataclass
-from threading import Lock
 from typing import List, Any
 from bisect import bisect, bisect_left
 from collections import deque
 from kdtree import KdTree
 from intervaltree import IntervalTree
-import _pickle as pickle
+try:
+   import cPickle as pickle
+except:
+   import pickle
 from bintrees import AVLTree, RBTree, BinaryTree, FastAVLTree, FastBinaryTree, FastRBTree
 from boundary import Boundary, psm_attributes_in_bound, get_mz_bounds, get_rt_bounds, get_ook0_bounds
 from kdtree.point import Point
 import sys
+
 
 sys.setrecursionlimit(10 ** 6)
 
@@ -29,6 +32,7 @@ class TreeType(Enum):
     AVL = 8
     RB_TREE = 9
     INTERVAL_TREE = 10
+    SORTED_LINKED_LIST = 11
 
 
 
@@ -36,24 +40,26 @@ class TreeType(Enum):
 def psm_tree_constructor(tree_type: TreeType):
     if tree_type == TreeType.KD_TREE:
         return PsmKdTree()
-    if tree_type == TreeType.SORTED_LIST:
+    elif tree_type == TreeType.SORTED_LIST:
         return PsmSortedList()
-    if tree_type == TreeType.LIST:
+    elif tree_type == TreeType.LIST:
         return PsmList()
-    if tree_type == TreeType.BINARY:
+    elif tree_type == TreeType.BINARY:
         return PsmBinaryTree()
-    if tree_type == TreeType.AVL:
+    elif tree_type == TreeType.AVL:
         return PsmAvlTree()
-    if tree_type == TreeType.RB_TREE:
+    elif tree_type == TreeType.RB_TREE:
         return PsmRBTree()
-    if tree_type == TreeType.FAST_BINARY:
+    elif tree_type == TreeType.FAST_BINARY:
         return PsmFastBinaryTree()
-    if tree_type == TreeType.FAST_AVL:
+    elif tree_type == TreeType.FAST_AVL:
         return PsmFastAVLTree()
-    if tree_type == TreeType.FAST_RB:
+    elif tree_type == TreeType.FAST_RB:
         return PsmFastRBTree()
-    if tree_type == TreeType.INTERVAL_TREE:
+    elif tree_type == TreeType.INTERVAL_TREE:
         return PsmIntervalTree()
+    elif tree_type == TreeType.SORTED_LINKED_LIST:
+        return PsmSortedLinkedList()
     else:
         return NotImplemented
 
@@ -128,14 +134,14 @@ class AbstractPsmTree(ABC):
         saves all psm's within tree to a text file
         """
         with open(FILE_NAME, "wb") as output_file:
-            pickle.dump(self.tree, FILE_NAME)
+            pickle.dump(self.tree, output_file, -1)
 
     def load(self, FILE_NAME):
         """
         adds psm's from text file to PSMTree
         """
         with open(FILE_NAME, "rb") as input_file:
-            self.tree = pickle.load(FILE_NAME)
+            self.tree = pickle.load(input_file)
 
 
 @dataclass
@@ -194,8 +200,8 @@ class PsmSortedList(AbstractPsmTree):
     but still long. bisect had significantly shorter search times but horrendous add times
     deque had horrendous search times (after linked lists of 100k psm's) but slightly faster add times.
     """
-    tree: List[PSM] = field(default_factory=lambda: deque())  # The tree is composed of lists of PSM's
-    mz_list: [float] = field(default_factory=lambda: deque())  # this is a list of just mz values, for matching indexes
+    tree: List[PSM] = field(default_factory=lambda: list())  # The tree is composed of lists of PSM's
+    mz_list: [float] = field(default_factory=lambda: list())  # this is a list of just mz values, for matching indexes
 
     def add(self, psm: PSM) -> None:
         i = bisect(self.mz_list, psm.mz)
@@ -218,16 +224,32 @@ class PsmSortedList(AbstractPsmTree):
                 break
         return res
 
-    def save(self, file_name: str) -> None:
-        with open(file_name, "w") as file:
-            for psm in self.tree:
-                file.write(psm.serialize())
+    def save(self, FILE_NAME):
+        """
+        saves all psm's within tree to a text file
+        """
+        with open(FILE_NAME, "wb") as output_file:
+            pickle.dump(self.tree, output_file)
 
-    def load(self, file_name: str) -> None:
-        with open(file_name) as file:
-            for line in file:
-                psm = PSM.deserialize(line)
-                self.add(psm)
+    def load(self, FILE_NAME):
+        """
+        adds psm's from text file to PSMTree
+        """
+        with open(FILE_NAME, "rb") as input_file:
+            self.tree = pickle.load(input_file)
+        self.mz_list = [psm.mz for psm in self.tree]
+
+
+@dataclass
+class PsmSortedLinkedList(PsmSortedList):
+    """
+    Rank #3.
+    PsmSortedList can use either binary search bisect functions or a deque to be much faster than PsmList...
+    but still long. bisect had significantly shorter search times but horrendous add times
+    deque had horrendous search times (after linked lists of 100k psm's) but slightly faster add times.
+    """
+    tree: List[PSM] = field(default_factory=lambda: deque())  # The tree is composed of lists of PSM's
+    mz_list: [float] = field(default_factory=lambda: deque())  # this is a list of just mz values, for matching indexes
 
 
 @dataclass
@@ -266,6 +288,8 @@ class PsmBinTrees(AbstractPsmTree):
     Binary Search Tree. 1 Dimensional, so only compares mz values against each other for storage and search.
     Slightly above mediocre speed.
     Basis for tree types RB, AVL, & Binary
+
+    TODO: Update bintrees pickling process. Currently it calls add on every item. Get inspiration from interval_tree...
     """
 
     # pass in a PSM. The mz is extracted and put into list form, then appended to the tree.

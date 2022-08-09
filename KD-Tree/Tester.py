@@ -1,8 +1,7 @@
 import unittest
 import random
 import time
-import os.path
-from .Forest import *
+from Forest import *
 
 
 def generate_random_psm() -> PSM:
@@ -218,7 +217,13 @@ class IntervalTreeTester(test_by_psm_tree_type(TreeType.INTERVAL_TREE)):
     pass
 """
 
+class SLTreeTester(test_by_psm_tree_type(TreeType.SORTED_LIST)):
+    pass
 
+class IntervalTreeTester(test_by_psm_tree_type(TreeType.INTERVAL_TREE)):
+    pass
+
+"""
 class BinTreeTester(test_by_psm_tree_type(TreeType.BINARY)):
     pass
 
@@ -239,6 +244,7 @@ class FastRBTree(test_by_psm_tree_type(TreeType.FAST_RB)):
 
 class FastBinaryTree(test_by_psm_tree_type(TreeType.FAST_BINARY)):
     pass
+"""
 
 if __name__ == '__main__':
     unittest.main()

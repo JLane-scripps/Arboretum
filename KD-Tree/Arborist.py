@@ -1,6 +1,8 @@
+import os
+from threading import Lock
 from typing import Dict
 from Forest import *
-
+import shutil
 
 
 @dataclass
@@ -17,27 +19,34 @@ class PSMArborist:
     _lock: Lock = Lock()
 
 #  Find way to create a folder during runtime and save all trees within
-    def save(self, file):
-        print(f"Saving PsmTree: {file}")
-        # Create folder here
+    def save(self, directory):
+
+        # Check if directory exists & remove if it does
+        if os.path.exists(directory):
+            shutil.rmtree(directory)
+
+        print("Directory '% s' created" % directory)
+        os.makedirs(directory)  # make new directory
+
         self._lock.acquire()
-        with open(file, 'wb') as output_file:
-            pickle.dump(self.trees, output_file, 5)
-        """for charge in self.trees:
-                #loop through to get file name of trees appended with charge
-                self.trees[charge].save(output_file)"""
+        for charge, tree in self.trees.items():
+            file_name = f"{charge}.pkl"
+            tree.save(os.path.join(directory, file_name)) # save tree's to charge.pkl
         self._lock.release()
 
+    # pass a folder, look inside for saved files, and load them all as trees
+    def load(self, directory):
 
-# pass a folder, look inside for saved files, and load them all as trees
-    def load(self, file):
-        print(f"loading PsmTree: {file}")
+        files = os.listdir(directory)
+
         self._lock.acquire()
-        with open(file, 'rb') as input_file:
-            self.trees = pickle.load(input_file)
-        """with open(file, "rb") as input_file:
-            self.trees = pickle.load(input_file)"""
+        for file in files:
+            charge = int(os.path.splitext(file)[0]) # /path/to/file.pkl -> file
+            pms_tree = psm_tree_constructor(self.tree_type)
+            pms_tree.load(os.path.join(directory, file))
+            self.trees[charge] = pms_tree
         self._lock.release()
+
 
     def add(self, psm: PSM):
         """
