@@ -16,7 +16,6 @@ from boundary import Boundary, psm_attributes_in_bound, get_mz_bounds, get_rt_bo
 from kdtree.point import Point
 import sys
 
-
 sys.setrecursionlimit(10 ** 6)
 
 

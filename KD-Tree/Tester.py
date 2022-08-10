@@ -1,7 +1,11 @@
+import os
 import unittest
 import random
 import time
-from Forest import *
+from Forest import TreeType, psm_tree_constructor, PSM, AbstractPsmTree, PsmKdTree, PsmIntervalTree, PsmList, \
+    PsmSortedList, PsmSortedLinkedList, PsmBinTrees, PsmBinaryTree, PsmFastBinaryTree, PsmAvlTree, PsmFastAVLTree, \
+    PsmRBTree, PsmFastRBTree
+from boundary import Boundary, get_mz_bounds, get_rt_bounds, get_ook0_bounds
 
 
 def generate_random_psm() -> PSM:
@@ -43,7 +47,7 @@ def test_by_psm_tree_type(tree_type: TreeType):
             # Measures search times.
             # Saves & Loads trees.
             """
-            """print("\nPerformance for", tree_type.name)
+            print("\nPerformance for", tree_type.name)
             performance_dict = {}
             for n in [10, 100, 500, 1_000, 2_500, 5_000, 10_000, 50_000, 75_000, 100_000 , 250_000, 400_000, 500_000] : #]:
                 tree = psm_tree_constructor(tree_type)
@@ -68,7 +72,7 @@ def test_by_psm_tree_type(tree_type: TreeType):
             file_name = os.path.join('C:/Users/jeffl/OneDrive/Scripps Research Institute/KD-Tree/Performance Logs Temp', tree_type.name +'.txt')
             with open(file_name, 'w') as newfile:
                 newfile.write(str(performance_dict))
-            newfile.close()"""
+            newfile.close()
 
 
         def test_add(self):

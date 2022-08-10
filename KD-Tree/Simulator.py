@@ -1,7 +1,8 @@
 import os
 import time
-from Arborist import *
 import random
+from Arborist import PSMArborist, TreeType, PSM
+from boundary import get_mz_bounds, get_rt_bounds, get_ook0_bounds
 
 
 def generate_random_psm() -> PSM:
@@ -80,7 +81,7 @@ for x in range(runs):
 
 print(performance_dict)
 
-file_name = os.path.join('C:/Users/jeffl/OneDrive/Scripps Research Institute/KD-Tree/Sim Log/Simulation Log' + str(tree_type) + '.txt')
+file_name = os.path.join('Sim Log/Sim ' + str(tree_type.name) + '.txt')
 with open(file_name, 'w') as newfile:
     newfile.write(str(performance_dict))
 newfile.close()

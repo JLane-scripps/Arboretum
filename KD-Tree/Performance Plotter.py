@@ -1,10 +1,8 @@
 import ast
 import os.path
-import matplotlib as matplotlib
 from matplotlib import pyplot as plt
-import pandas as pd
 
-path = 'C:/Users/jeffl/OneDrive/Scripps Research Institute/KD-Tree/Performance Logs Temp'
+path = 'Sim Log'
 folder = os.scandir(path)
 labels = []
 y_add = []
@@ -17,11 +15,12 @@ for file in folder:
             f_name = log.name.split('\\')
             labels.append(f_name[1])
             performance_dict = ast.literal_eval(log.read())
-            plt.plot(list(performance_dict.keys()), [performance_dict[key]['add_time'] for key in performance_dict], label=f_name[1].split(".")[0])
+            plt.plot(list(performance_dict.keys()), [performance_dict[key]['add_time'] for key in performance_dict],
+                     label=f_name[1].split(".")[0])
 
 plt.xlabel("Num PSMs")
 plt.ylabel("Time")
-plt.title("PSM Tree Performance")
+plt.title("PSM Tree Add Time")
 plt.legend()
 plt.show()
 
@@ -33,11 +32,12 @@ for file in folder:
             f_name = log.name.split('\\')
             labels.append(f_name[1])
             performance_dict = ast.literal_eval(log.read())
-            plt.plot(list(performance_dict.keys()), [performance_dict[key]['search_time'] for key in performance_dict], label=f_name[1].split(".")[0])
+            plt.plot(list(performance_dict.keys()), [performance_dict[key]['search_time'] for key in performance_dict],
+                     label=f_name[1].split(".")[0])
 
 plt.xlabel("Num PSMs")
 plt.ylabel("Time")
-plt.title("PSM Tree Performance")
+plt.title("PSM Tree Search Time")
 plt.legend()
 plt.show()
 
@@ -46,6 +46,6 @@ print("search times are", y_search)
 print(x)
 print(labels)
 folder.close()
-file_name = os.path.join('C:/Users/jeffl/OneDrive/Scripps Research Institute/KD-Tree', "point_data.txt")
+file_name = os.path.join('KD-Tree', "point_data.txt")
 
 
