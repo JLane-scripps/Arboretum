@@ -1,17 +1,14 @@
-1. Implement Arborist (Done?)
 2. Simulator
-	(list of .sqt files # the PSMTree)
-	will return search time and tree creation time. i.e. Save & load.
-	Paser could be online version of this sim -> Ty will do this
+	?- list of .sqt files # the PSMTree.  (what does this mean??)
 3. Publish package.
 4. Write extensive ReadMe
 5. Present
 
 
 __SIMULATOR:__
-1. Make a function that creates a file which holds 50k randomly generated psms.
-pickle.dump[randompsm() for i in range[50_000], outfile name)
-2. loop over N number of these files (each containing 50k random psms)
+^  	1. Make a function that creates a file which holds 50k randomly generated psms.
+	pickle.dump[randompsm() for i in range[50_000], outfile name)
+^	2. loop over N number of these files (each containing 50k random psms)
 for each file, adding each file to a single tree.
 2.5 Measure each LOAD time.
 3. Measure each ADD time, to add pickled list of psms into the tree.
