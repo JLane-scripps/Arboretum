@@ -9,7 +9,7 @@ authors = [
     { name="Ty Garrett", email="pgarrett@scripps.edu" },
     { name="Jeff Lane", email="jlane@scripps.edu" }
 ]
-description = "A package for adding & storing "
+description = "Several data structures, including trees, and a handler class (the 'Arborist') designed for a mass-spectrometer to keep track of PSM's mid-run and focus on particular PSM's"
 readme = "README.md"
 license = { file="LICENSE" }
 requires-python = ">=3.7"
@@ -20,5 +20,5 @@ classifiers = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/pypa/sampleproject"
-"Bug Tracker" = "https://github.com/pypa/sampleproject/issues"
+"Homepage" = "https://github.com/jlane-scripps/arboretum"
+"Bug Tracker" = "https://github.com/jlane-scripps/arboretum/issues"
