@@ -2,7 +2,7 @@ import ast
 import os.path
 from matplotlib import pyplot as plt
 
-path = '../../Test Logs/Sim Log'
+path = '../Test Logs/Sim Log'
 folder = os.scandir(path)
 labels = []
 y_add = []
