@@ -14,7 +14,7 @@ def generate_random_psm() -> PSM:
         mz=random.uniform(100, 1800),
         rt=random.uniform(0, 10_000),
         ook0=random.uniform(0.4, 1.8),
-        sequence=peptide_string
+        data={}
     )
 
 

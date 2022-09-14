@@ -1,3 +1,4 @@
+import ast
 import sys
 import numpy as np
 from abc import ABC, abstractmethod
@@ -76,7 +77,7 @@ class PSM:
     mz: float
     rt: float
     ook0: float
-    sequence: str
+    data: dict
 
     # Example: psm = PSM(charge=1, mz=100, rt=100, ook0=0.5, sequence="PEPTIDE")
 
@@ -89,7 +90,7 @@ class PSM:
                ook0_boundary.lower <= self.ook0 <= ook0_boundary.upper
 
     def serialize(self) -> str:
-        return f"{self.charge},{self.mz},{self.rt},{self.ook0},{self.sequence}\n"
+        return f"{self.charge},{self.mz},{self.rt},{self.ook0},{self.data}\n"
 
     @staticmethod
     def deserialize(line: str) -> 'PSM':
@@ -98,7 +99,7 @@ class PSM:
                   float(line_elems[1]),
                   float(line_elems[2]),
                   float(line_elems[3]),
-                  str(line_elems[4]))
+                  ast.literal_eval(line_elems[4]))
         return psm
 
 

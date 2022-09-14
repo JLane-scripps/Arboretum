@@ -3,7 +3,7 @@ from setuptools import setup
 setup(
     name='Arboretum',
     version='0.0.1',
-    packages=[''],
+    packages=['Arboretum'],
     url='https://github.com/JLane-scripps/Arboretum.git',
     license='',
     author='Jeff Lane, Patrick Garrett',
