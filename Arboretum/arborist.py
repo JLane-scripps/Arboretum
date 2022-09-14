@@ -11,10 +11,8 @@ formats ("trees types").
 import os
 from dataclasses import dataclass, field
 from threading import Lock
-from typing import Dict
-from forest import TreeType, psm_tree_constructor, PSM, AbstractPsmTree, PsmKdTree, PsmIntervalTree, PsmList, \
-    PsmSortedList, PsmSortedLinkedList, PsmBinTrees, PsmBinaryTree, PsmFastBinaryTree, PsmAvlTree, PsmFastAVLTree, \
-    PsmRBTree, PsmFastRBTree
+from typing import Dict, Union
+from forest import TreeType, psm_tree_constructor, PSM, AbstractPsmTree
 from boundary import Boundary
 import shutil
 
@@ -28,11 +26,10 @@ class PSMArborist:
     New Trees will be created for each new charge encountered
     The chosen TreeType, declared here, can be specific or "TreeType" to allow all options and specified elsewhere.
     """
-    tree_type: TreeType
+    tree_type: Union[TreeType, str] = TreeType.SORTED_LIST
     trees: Dict[int, AbstractPsmTree] = field(default_factory=dict)
 
     _lock: Lock = Lock()
-
 
     def save(self, directory):
         """

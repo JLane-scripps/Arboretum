@@ -28,7 +28,7 @@ leaves = []  # the list of psms (aka 'leaves' on the tree)
 leaf_count = 50_000  # The number of PSM's we will generate and add to the tree in each run.
 canopy = 0  # Total number of leaves, updated after each run. (leaf_count * runs so far)
 performance_dict = {}
-out_directory = "leaves"
+out_directory = os.path.join("data", "leaves")
 
 """ ----- Simulation -----"""
 for x in range(runs):
@@ -81,7 +81,6 @@ for x in range(runs):
 
 print(performance_dict)
 
-file_name = os.path.join('Sim Log/Sim ' + str(tree_type.name) + '.txt')
+file_name = os.path.join('data', str(tree_type.name) + '.txt')
 with open(file_name, 'w') as newfile:
     newfile.write(str(performance_dict))
-newfile.close()

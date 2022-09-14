@@ -7,21 +7,23 @@ from dataclasses import field, dataclass
 from enum import Enum
 from intervaltree import IntervalTree
 from kdtree import KdTree
-from typing import List, Any
+from kdtree.point import Point
+from typing import List, Any, Union
+
 try:
     import cPickle as pickle
 except:
     import pickle
+
 from bintrees import BinaryTree, FastBinaryTree, AVLTree, FastAVLTree, RBTree, FastRBTree
 from boundary import Boundary, psm_attributes_in_bound
-from kdtree.point import Point
 
 sys.setrecursionlimit(10 ** 6)
 
 
 # All available tree types are as follows. This list must be updated whenever TreeTypes are removed or added.
 class TreeType(Enum):
-    KD_TREE = 1
+    KD = 1
     SORTED_LIST = 2
     LIST = 3
     FAST_AVL = 4
@@ -29,37 +31,37 @@ class TreeType(Enum):
     FAST_BINARY = 6
     BINARY = 7
     AVL = 8
-    RB_TREE = 9
-    INTERVAL_TREE = 10
+    RB = 9
+    INTERVAL = 10
     SORTED_LINKED_LIST = 11
 
 
 # TreeType assignments corresponding to above
-def psm_tree_constructor(tree_type: TreeType):
-    if tree_type == TreeType.KD_TREE:
+def psm_tree_constructor(tree_type: Union[TreeType, str]):
+    if tree_type == TreeType.KD or tree_type == 'kd_tree':
         return PsmKdTree()
-    elif tree_type == TreeType.SORTED_LIST:
+    elif tree_type == TreeType.SORTED_LIST or tree_type == 'sorted_list':
         return PsmSortedList()
-    elif tree_type == TreeType.LIST:
+    elif tree_type == TreeType.LIST or tree_type == 'list':
         return PsmList()
-    elif tree_type == TreeType.BINARY:
+    elif tree_type == TreeType.BINARY or tree_type == 'binary':
         return PsmBinaryTree()
-    elif tree_type == TreeType.AVL:
+    elif tree_type == TreeType.AVL or tree_type == 'avl':
         return PsmAvlTree()
-    elif tree_type == TreeType.RB_TREE:
+    elif tree_type == TreeType.RB or tree_type == 'rb':
         return PsmRBTree()
-    elif tree_type == TreeType.FAST_BINARY:
+    elif tree_type == TreeType.FAST_BINARY or tree_type == 'fast_binary':
         return PsmFastBinaryTree()
-    elif tree_type == TreeType.FAST_AVL:
+    elif tree_type == TreeType.FAST_AVL or tree_type == 'fast_avl':
         return PsmFastAVLTree()
-    elif tree_type == TreeType.FAST_RB:
+    elif tree_type == TreeType.FAST_RB or tree_type == 'fast_rb':
         return PsmFastRBTree()
-    elif tree_type == TreeType.INTERVAL_TREE:
+    elif tree_type == TreeType.INTERVAL or tree_type == 'interval':
         return PsmIntervalTree()
-    elif tree_type == TreeType.SORTED_LINKED_LIST:
+    elif tree_type == TreeType.SORTED_LINKED_LIST or tree_type == 'sorted_link_list':
         return PsmSortedLinkedList()
     else:
-        return NotImplemented
+        raise Exception("Tree type not supported")
 
 
 @dataclass
