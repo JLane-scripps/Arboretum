@@ -12,9 +12,10 @@ import os
 from dataclasses import dataclass, field
 from threading import Lock
 from typing import Dict, Union
-from forest import TreeType, psm_tree_constructor, PSM, AbstractPsmTree
-from boundary import Boundary
 import shutil
+
+from .forest import TreeType, psm_tree_constructor, PSM, AbstractPsmTree
+from .boundary import Boundary
 
 
 @dataclass

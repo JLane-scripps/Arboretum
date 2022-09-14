@@ -1,9 +1,9 @@
 from setuptools import setup
 
 setup(
-    name='Arboretum',
+    name='arboretum',
     version='0.0.1',
-    packages=['Arboretum'],
+    packages=['arboretum'],
     url='https://github.com/JLane-scripps/Arboretum.git',
     license='',
     author='Jeff Lane, Patrick Garrett',

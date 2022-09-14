@@ -10,14 +10,14 @@ from intervaltree import IntervalTree
 from kdtree import KdTree
 from kdtree.point import Point
 from typing import List, Any, Union
+from bintrees import BinaryTree, FastBinaryTree, AVLTree, FastAVLTree, RBTree, FastRBTree
 
 try:
     import cPickle as pickle
 except:
     import pickle
 
-from bintrees import BinaryTree, FastBinaryTree, AVLTree, FastAVLTree, RBTree, FastRBTree
-from boundary import Boundary, psm_attributes_in_bound
+from .boundary import Boundary, psm_attributes_in_bound
 
 sys.setrecursionlimit(10 ** 6)
 
