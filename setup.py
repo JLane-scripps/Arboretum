@@ -10,8 +10,9 @@ setup(
     author_email='jlane@scripps.edu, pgarrett@scripps.edu',
     description='Several data storage trees and a handler class, for mass-spec PSM storage & searching',
     install_requires = [
-        # Github Private Repository
-        'numpy~=1.23.1', 'intervaltree~=3.1.0', 'ranged-bintrees @ git+https://github.com/pgarrett-scripps/ranged_bintrees.git',
+        'numpy~=1.23.1',
+        'intervaltree~=3.1.0',
+        'ranged-bintrees @ git+https://github.com/pgarrett-scripps/ranged_bintrees.git',
         'ranged-kdtree @ git+https://github.com/pgarrett-scripps/ranged_kdtree.git'
     ]
 )
