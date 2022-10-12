@@ -28,7 +28,7 @@ class PsmSortedList(PsmTree):
             raise ValueError
         self.tree[psm.mz].remove(psm)
 
-    def search(self, mz_boundary: Boundary, rt_boundary: Boundary, ook0_boundary: Boundary) -> List[PSM]:
+    def _search(self, mz_boundary: Boundary, rt_boundary: Boundary, ook0_boundary: Boundary) -> List[PSM]:
         keys = self.tree.irange(mz_boundary.lower, mz_boundary.upper)
         psms = []
         for key in keys:
@@ -80,7 +80,7 @@ class PsmHashtable(PsmTree):
             raise ValueError
         self.tree[key].remove(psm)
 
-    def search(self, mz_boundary: Boundary, rt_boundary: Boundary, ook0_boundary: Boundary) -> List[PSM]:
+    def _search(self, mz_boundary: Boundary, rt_boundary: Boundary, ook0_boundary: Boundary) -> List[PSM]:
         lower_key = convert_to_int(mz_boundary.lower, self.precision)
         upper_key = convert_to_int(mz_boundary.upper, self.precision, floor=False)
 

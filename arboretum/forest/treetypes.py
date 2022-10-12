@@ -7,6 +7,8 @@ class TreeType(Enum):
     INTERVAL = auto()
     SORTED_LIST = auto()
     HASHTABLE = auto()
+    HASHTABLE_MED = auto()
+    HASHTABLE_LARGE = auto()
     FAST_AVL = auto()
     FAST_RB = auto()
     FAST_BINARY = auto()

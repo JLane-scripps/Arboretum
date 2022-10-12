@@ -2,6 +2,9 @@ import os
 import unittest
 import random
 import time
+
+import numpy as np
+
 from arboretum.forest import TreeType, psm_tree_constructor
 from arboretum.boundary import Boundary, get_mz_bounds, get_rt_bounds, get_ook0_bounds
 from psm import PSM
@@ -10,12 +13,13 @@ from psm import PSM
 def generate_random_psm() -> PSM:
     letters = 'ARNDCEQGHILKMFPSTWYV'
     peptide_string = ''.join(random.choice(letters) for i in range(random.randint(6, 30)))
+    mz = np.random.normal(1000, 10)
     return PSM(
         charge=random.randint(1, 5),
-        mz=random.uniform(1000, 1001),
+        mz=mz,
         rt=random.uniform(0, 250),
-        ook0=random.uniform(0.9, 1.1),
-        data={}
+        ook0=mz/1000 + random.uniform(-0.2, 0.2),
+        data={'sequence':peptide_string}
     )
 
 
@@ -39,6 +43,22 @@ def test_by_psm_tree_type(tree_type: TreeType):
 
         def test_add(self):
             self.tree.add(self.psms[0])
+
+        def test_add_negative(self):
+            psm = PSM(-1, -1005.0, -250, -0.9, {'sequence':'PEPTIDE'})
+            self.tree.add(psm)
+            results = self.tree.search(get_mz_bounds(psm.mz, PsmTreeTester.PPM),
+                                       get_rt_bounds(psm.rt, PsmTreeTester.RT_OFF),
+                                       get_ook0_bounds(psm.ook0, PsmTreeTester.OOK0_TOL))
+            self.assertTrue(psm in results)
+
+        def test_add_zero(self):
+            psm = PSM(0, 0,0,0, {'sequence':'PEPTIDE'})
+            self.tree.add(psm)
+            results = self.tree.search(get_mz_bounds(psm.mz, PsmTreeTester.PPM),
+                                       get_rt_bounds(psm.rt, PsmTreeTester.RT_OFF),
+                                       get_ook0_bounds(psm.ook0, PsmTreeTester.OOK0_TOL))
+            self.assertTrue(psm in results)
 
         def test_remove(self):
             self.tree.add(self.psms[0])

@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Union, List
 
-from boundary import Boundary
+from boundary import Boundary, get_mz_bounds, get_rt_bounds, get_ook0_bounds
 from psm import PSM
 
 try:
@@ -34,8 +34,26 @@ class PsmTree(ABC):
         """
         pass
 
+    def tsearch(self, mz: float, rt: float, ook0: float, ppm: float, rt_offset: float, ook0_tolerance: float) -> List[PSM]:
+        """
+        tsearch : tolerance search. searches the tree with given tolerances.
+        """
+        mz_bounds = get_mz_bounds(mz, ppm)
+        rt_bounds = get_rt_bounds(rt, rt_offset)
+        ook0_bounds = get_ook0_bounds(ook0, ook0_tolerance)
+        return self._search(mz_bounds, rt_bounds, ook0_bounds)
+
+    def search(self, mz_boundary: List[float], rt_boundary: List[float], ook0_boundary: List[float]) -> List[PSM]:
+
+        if len(mz_boundary) != 2 or len(rt_boundary) != 2 or len(ook0_boundary) != 2:
+            raise ValueError('Incorrect boundary arguments. Boundary should contain two items: [lower, upper]')
+
+        return self._search(Boundary(mz_boundary[0], mz_boundary[1]),
+                     Boundary(rt_boundary[0], rt_boundary[1]),
+                     Boundary(ook0_boundary[0], ook0_boundary[1]))
+
     @abstractmethod
-    def search(self, mz_boundary: Boundary, rt_boundary: Boundary, ook0_boundary: Boundary) -> List[PSM]:
+    def _search(self, mz_boundary: Boundary, rt_boundary: Boundary, ook0_boundary: Boundary) -> List[PSM]:
         """
         searches the PSMTree over a given boundary. Return all psm's within the Boundary
         """
@@ -65,9 +83,19 @@ class PsmTree(ABC):
     @abstractmethod
     def remove(self, psm: PSM) -> None:
         """
-        removes psm from tree with passed dimensions
+        removes psm from tree with passed dimensions. Throws ValueError if psm not in tree
         """
         pass
+
+    def discard(self, psm: PSM) -> bool:
+        """
+        removes psm from tree with passed dimensions. Returns true if removed, false if not present
+        """
+        try:
+            self.remove(psm)
+        except ValueError:
+            return False
+        return True
 
     @property
     @abstractmethod

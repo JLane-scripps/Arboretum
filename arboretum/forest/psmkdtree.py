@@ -30,7 +30,7 @@ class PsmKdTree(PsmTree):
         psm = self.get(psm.mz, psm.rt, psm.ook0)
 
 
-    def search(self, mz_bounds: Boundary, rt_bounds: Boundary, ook0_bounds: Boundary):
+    def _search(self, mz_bounds: Boundary, rt_bounds: Boundary, ook0_bounds: Boundary):
         bounds = [[mz_bounds.lower, mz_bounds.upper],
                   [rt_bounds.lower, rt_bounds.upper],
                   [ook0_bounds.lower, ook0_bounds.upper]]

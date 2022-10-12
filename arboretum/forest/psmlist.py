@@ -37,7 +37,7 @@ class PsmSortedList(PsmTree):
         del (self.tree[i])
         del (self.mz_list[i])
 
-    def search(self, mz_boundary: Boundary, rt_boundary: Boundary, ook0_boundary: Boundary) -> List[PSM]:
+    def _search(self, mz_boundary: Boundary, rt_boundary: Boundary, ook0_boundary: Boundary) -> List[PSM]:
         start_i = bisect_left(self.mz_list, mz_boundary.lower)
         if start_i == len(self.mz_list):
             return []
@@ -84,7 +84,7 @@ class PsmList(PsmTree):
     def order_psms(psms: List[PSM]) -> List[PSM]:
         return psms
 
-    def search(self, mz_Boundary: Boundary, rt_Boundary: Boundary, ook0_Boundary: Boundary) -> List[PSM]:
+    def _search(self, mz_Boundary: Boundary, rt_Boundary: Boundary, ook0_Boundary: Boundary) -> List[PSM]:
         matches = []
         for psm in self.tree:
             if psm_attributes_in_bound(psm.mz, psm.rt, psm.ook0, mz_Boundary, rt_Boundary, ook0_Boundary):

@@ -18,8 +18,8 @@ returns upper bound & lower bound
 " -> Boundary " ensures it returns as class Boundary, from boundary.py
 """
 def get_mz_bounds(mz: float, ppm: float) -> Boundary:
-    return Boundary(lower=mz - mz * ppm / 1_000_000,
-                    upper=mz + mz * ppm / 1_000_000)
+    return Boundary(lower=mz - abs(mz) * ppm / 1_000_000,
+                    upper=mz + abs(mz) * ppm / 1_000_000)
 
 """
 receives retention time (rt) as a float, & offset as a float
@@ -36,5 +36,5 @@ uses ook0 as focal point, for +- of (ook0 * tolerance)
 returns lower bound & upper bound as a class Boundary object 
 """
 def get_ook0_bounds(ook0: float, tolerance: float) -> Boundary:
-    return Boundary(lower=ook0 - ook0 * tolerance,
-                    upper=ook0 + ook0 * tolerance)
+    return Boundary(lower=ook0 - abs(ook0) * tolerance,
+                    upper=ook0 + abs(ook0) * tolerance)

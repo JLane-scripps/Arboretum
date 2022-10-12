@@ -37,7 +37,7 @@ class PsmBinTree(PsmTree):
         else:
             psms.remove(psm)
 
-    def search(self, mz_bounds: Boundary, rt_bounds: Boundary, ook0_bounds: Boundary):
+    def _search(self, mz_bounds: Boundary, rt_bounds: Boundary, ook0_bounds: Boundary):
         """
         pass in each of the 3 ranges as Boundary objects.
         Only uses mz to sort (because it's only sortable in 1 dimension), but ensures all values are acceptable.

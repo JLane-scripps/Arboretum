@@ -28,7 +28,7 @@ class PsmIntervalTree(PsmTree):
         psms = [psm.data for psm in self.tree[psm.mz]]
         psms.remove(psm)
 
-    def search(self, mz_bounds: Boundary, rt_bounds: Boundary, ook0_bounds: Boundary):
+    def _search(self, mz_bounds: Boundary, rt_bounds: Boundary, ook0_bounds: Boundary):
         psms = [interval.data for interval in self.tree[mz_bounds.lower:mz_bounds.upper+0.0001]]  # make inclusive
         return [psm for psm in psms if psm.in_boundary(mz_bounds, rt_bounds, ook0_bounds)]
 

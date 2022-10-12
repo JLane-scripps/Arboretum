@@ -35,7 +35,7 @@ class PsmHashtable(PsmTree):
         key = convert_to_int(psm.mz, self.precision)
         self.tree[key].remove(psm)
 
-    def search(self, mz_boundary: Boundary, rt_boundary: Boundary, ook0_boundary: Boundary) -> List[PSM]:
+    def _search(self, mz_boundary: Boundary, rt_boundary: Boundary, ook0_boundary: Boundary) -> List[PSM]:
 
         lower_key = convert_to_int(mz_boundary.lower, self.precision)
         upper_key = convert_to_int(mz_boundary.upper, self.precision, floor=False)

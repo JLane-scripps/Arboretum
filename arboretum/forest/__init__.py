@@ -1,10 +1,10 @@
 import sys
 from typing import Union
 
+from forest.psmtree import PsmTree
 from forest.psmbintree import PsmBinaryTree, PsmAvlTree, PsmRBTree, PsmFastBinaryTree, PsmFastAVLTree, PsmFastRBTree
 from forest.psmintervaltree import PsmIntervalTree
 from forest.psmkdtree import PsmKdTree
-#from forest.psmlist import PsmSortedList, PsmList, PsmSortedLinkedList
 from forest.psmsortedlist import PsmSortedList, PsmHashtable
 from forest.treetypes import TreeType
 
@@ -35,5 +35,9 @@ def psm_tree_constructor(tree_type: Union[TreeType, str]):
         return PsmSortedList()
     elif tree_type == TreeType.HASHTABLE or tree_type == 'hashtable':
         return PsmHashtable()
+    elif tree_type == TreeType.HASHTABLE_MED or tree_type == 'hashtable_med':
+        return PsmHashtable(precision=3)
+    elif tree_type == TreeType.HASHTABLE_LARGE or tree_type == 'hashtable_large':
+        return PsmHashtable(precision=4)
     else:
         raise Exception("Tree type not supported")
