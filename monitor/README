@@ -1,0 +1,11 @@
+monitor will monitor the status of arborist actors
+
+inputs: serialized (pickled) arborist
+
+implement a gui that can take user input and search psm's given a set of bounds
+
+display some stats based on the tree
+
+
+[How to Run]
+run with >streamlit run app.py

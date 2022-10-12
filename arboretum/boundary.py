@@ -1,12 +1,10 @@
 from dataclasses import dataclass
 
-
 @dataclass
 class Boundary:
     __slots__ = "lower", "upper"
     lower: float
     upper: float
-
 
 def psm_attributes_in_bound(mz, rt, ook0, mz_bounds: Boundary, rt_bounds: Boundary, ook0_bounds: Boundary) -> bool:
     return mz_bounds.lower <= mz <= mz_bounds.upper and \
