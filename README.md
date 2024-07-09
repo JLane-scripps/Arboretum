@@ -1,7 +1,7 @@
 Welcome to the Arboretum.
-This package was developed to allow mass-spectrometry machines
+This package was developed to allow mass-spectrometry instruments
 the ability to store and search PSM's (Peptide Sequence Matches)
-in real time, during and between mass-spec runs. 
+in real time, during and between mass-spec (M2/M2) acquisitions. 
 
 The forest.py file utilizes several existing python packages
 and modules to design data storage "trees" of various formats;
